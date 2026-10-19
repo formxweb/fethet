@@ -1,0 +1,2007 @@
+(() => {
+'use strict';
+
+const CFG = {
+  url: 'https://ehuqpcedtxmyouxmpikz.supabase.co',
+  key: 'sb_publishable_BZXd003Z0aatnNxSobnL8Q_gitiSCd3',
+  atlas: 'https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json',
+  poll: 20000
+};
+CFG.maps = CFG.url + '/storage/v1/object/public/maps/adm1/';
+
+const NUM2A2 = /*NUM2A2*/{};
+const NAME2A2 = { 'Kosovo': 'XK', 'N. Cyprus': 'CY', 'Somaliland': 'SO' };
+const PALETTE = ['#e8323c', '#ff6a3d', '#ff9f1c', '#f2c81e', '#b5d33d', '#4cc35a', '#14a35c', '#13b5b0',
+                 '#2e9be6', '#3d6fe3', '#5b5ce6', '#8b5cf6', '#c04fd8', '#ff5c8a', '#a8683c', '#e7ecf2'];
+const POPULAR = ['TR', 'US', 'JP', 'DE', 'GB', 'FR', 'BR', 'IN', 'AZ', 'NL'];
+const TIERS = [
+  { min: 1, c: '#8ea4ba', en: 'Recruit', tr: 'Er' },
+  { min: 3, c: '#57d9a3', en: 'Corporal', tr: 'Onbaşı' },
+  { min: 6, c: '#2e9be6', en: 'Sergeant', tr: 'Çavuş' },
+  { min: 10, c: '#8b5cf6', en: 'Lieutenant', tr: 'Teğmen' },
+  { min: 15, c: '#c04fd8', en: 'Captain', tr: 'Yüzbaşı' },
+  { min: 21, c: '#ff9f1c', en: 'Major', tr: 'Binbaşı' },
+  { min: 28, c: '#ff6a3d', en: 'Colonel', tr: 'Albay' },
+  { min: 36, c: '#e8323c', en: 'General', tr: 'General' },
+  { min: 50, c: '#ffd23f', en: 'Conqueror', tr: 'Fatih' }
+];
+const CROWN = '<svg class="crown" width="22" height="18" viewBox="0 0 22 18" aria-hidden="true"><path d="M2 15h18l1.5-11-5.5 4.5L11 1 6 8.5.5 4z" fill="currentColor"/></svg>';
+
+const T = {
+  en: {
+    brand: 'Fethet', players: 'players', painted: 'provinces painted', votesHour: 'votes this hour', votes24: 'points in 24h',
+    chairsShort: 'chairs', teamsShort: 'teams', segHow: 'Play', segTerms: 'Terms', segPrivacy: 'Privacy', segRefund: 'Refunds', how: 'How to play', terms: 'Terms', privacy: 'Privacy', refund: 'Refunds',
+    tagline: 'Every province on Earth is up for grabs.',
+    taglineSub: 'Start a team, vote once an hour, and paint provinces from Tokat to Tokyo in your color.',
+    unclaimed: 'Unclaimed', contested: 'Contested', chaired: 'Has a chair', loadingMap: 'Loading map…', loadingCountry: 'Loading {n}…',
+    mapFail: "The map didn't load. Check your connection.", countryFail: "{n}'s provinces didn't load. Try again.", retry: 'Try again',
+    tProv: 'Map', tTeams: 'Teams', tRank: 'Rankings', tLive: 'Live', tMe: 'Profile', find: 'Find a province (Tokat, Tokyo…)',
+    hintWorld: 'Tap a country to open its provinces', hintCountry: 'Tap a province to select it',
+    joinTitle: 'Pick a nickname', nick: 'Nickname', nickHint: '3–20 characters: letters, numbers, _ or .',
+    haveCode: 'Played before?', useCode: 'Sign in with your recovery code',
+    restoreTitle: 'Sign in with code', restoreText: 'Paste the recovery code from the Profile tab on your other device.',
+    code: 'Recovery code', signIn: 'Sign in', badCode: "No account matches that code. Check it and try again.", welcomeBack: 'Welcome back, {n}.',
+    next: 'Continue', cancel: 'Cancel', save: 'Save', gotIt: 'Got it', create: 'Start team',
+    teamDlgTitle: 'Your team', segJoin: 'Join a team', segNew: 'Start a team', searchTeams: 'Search teams',
+    teamName: 'Team name', teamNameHint: '3–24 characters.', teamColor: 'Color',
+    switchNote: "You can switch teams once every 24 hours. A team owner can't leave their team. Leaving a team gives up your chairs in it.",
+    noTeamsYet: 'No teams yet. Start the first one.',
+    guest: 'Not playing yet', guestState: 'Pick a nickname to start', play: 'Play',
+    noTeamState: 'Join a team or start your own', pickTeam: 'Pick a team',
+    ready: 'Vote ready', readySel: 'Vote ready · {p}', pickProv: 'Pick a province', vote: 'Vote', defend: 'Defend', voted: 'Voted',
+    nextPre: 'Next vote in ', nextPost: '', clockReady: 'Vote ready', clockNext: 'Your next vote opens at the top of the hour.',
+    heldBy: 'Held by', unclaimedSub: 'Nobody holds it yet. The first vote takes it.', pts: '{p} pts', pt1: '1 pt',
+    standings: 'Standings, last 7 days', people: '{v} people', person1: '1 person', lead: 'Lead: {d} pts', tie: 'Tied',
+    governor: 'Chair', acting: 'Acting chair', actingSub: 'Top voter of the leading team · {p}', chairSub: 'Paid chair · {price}', noGov: 'No chair yet',
+    topVoters: 'Top voters here', recentHere: 'Recent moves here',
+    yoursPill: 'Your team', hotPill: 'Contested', freePill: 'Free', chairPill: 'Chaired',
+    chairs: 'Province chairs', chairsNote: 'One chair per team in every province',
+    seatOf: '{t} chair', priceNow: 'price', priceTake: 'to take over', seatEmpty: 'Empty chair', seatHeld: '{n} · {price}', since: 'held {d}', uMin: '{n} min', uHour: '{n} h', uDay: '{n} d', uHM: '{h}h {m}m', uM: '{m}m',
+    becomeChair: 'Become chair · {price}', takeOver: 'Take over · {price}', youChair: "You're the chair",
+    salesSoonShort: 'Chair sales open soon', seatJoinFirst: 'Join a team to claim chairs.',
+    seatRule: 'An empty chair costs {base}. A held chair goes to the teammate who pays {step} more than the last price. Chairs earn {xp} XP every hour, and the leading team’s chair is shown as the province’s chair on the map.',
+    seatRuleFlat: 'A chair costs {base}, empty or held. Chairs earn {xp} XP every hour, and the leading team’s chair is shown as the province’s chair on the map.',
+    otherChairs: 'Other teams’ chairs',
+    seatTitle: 'Become chair', seatNowEmpty: 'This chair is empty.', seatNowHeld: 'Current chair: {n}, paid {price}',
+    seatPerk1: 'Your name shows as {p}’s chair for your team, and on the map with ♛ when your team leads.',
+    seatPerk2: '+{xp} XP for every hour you hold it.', seatPerk3: 'A teammate can take it over by paying {next}.',
+    seatPerk3flat: 'A teammate can take it over by paying {next}.', seatPerk4: 'Leaving your team gives up the chair.',
+    rally: 'Rally · +{n}', rallyConfirm: 'Tap again: +{n} to {p}', rallyIn: 'Rally in {t}', rallyToast: 'Rally! {p}: +{n} for {t}',
+    rallyReady: 'Rally ready: +{n} once a day', rallyHow: 'Open any province and tap Rally.', share: 'Share', copied: 'Link copied',
+    shareProv: '{p} is held by {t} on Fethet. Come take it back:', shareProvFree: '{p} is still unclaimed on Fethet. Grab it:',
+    shareTeam: 'Join {t} on Fethet and paint the world:', shareMe: 'I’m {n} on Fethet. Join my team:',
+    pickHint: 'Tap a country on the map to open its provinces, or search above.',
+    step1: 'Join or start a team', step1s: 'Pick a color. Anyone can start one.',
+    step2: 'Vote once every hour', step2s: 'Each province takes the color of the team with the most points in 7 days.',
+    step3: 'Become a province chair', step3s: 'Claim a chair for {base} and earn XP every hour.',
+    yourTeam: 'Your team', holds: '{c} provinces', hold1: '1 province', members: '{m} members', member1: '1 member',
+    hotTitle: 'Contested right now', hotNone: 'No close fights yet.', gap: 'gap {d}', countriesTitle: 'Countries in play', tryCountries: 'Start somewhere',
+    world: '← World', ofTotal: '{x} of {n} provinces painted', countryTeams: 'Who holds {c}', provinces: 'Provinces', showAll: 'Show all {n}', showLess: 'Show fewer',
+    teamsTitle: 'Teams', newTeam: 'Start a team', noTeams: 'No teams yet. Start the first one.', filterTeams: 'Filter teams',
+    owner: 'Owner', founder: 'Founder', sold: 'Sold {s} times', sold1: 'Sold once', soldNone: 'Never sold',
+    topMembers: 'Top members, last 7 days', buy: 'Buy this team · {price}', salesSoon: 'Team sales open soon',
+    youOwn: 'You own this team', edit: 'Edit team', joinTeam: 'Join team', yourTeamNow: "You're on this team", back: '← Back', allTeams: '← All teams',
+    teamProvs: 'Provinces held', teamChairs: 'Chairs', noneYet: 'None yet.',
+    sHeld: 'provinces', sMembers: 'members', sPts: 'points, 7 days', sV24: 'points, 24h', sSeats: 'chairs', sSales: 'sales',
+    buyTitle: 'Buy this team', toCheckout: 'Go to payment',
+    buy1: "You become the team's owner, shown with a crown.", buy2: 'You can rename the team and change its color.',
+    buy3: 'You move into this team. The old owner stays as a member.', buy4: 'Anyone can buy it from you the same way.', buy5: 'Chairs you hold in your current team are given up.',
+    buyNote: "Payment happens on Lemon Squeezy's secure checkout page. Come back here after paying.",
+    checking: 'Checking your payment…', boughtToast: 'You now own {t}.', seatToast: '♛ You are now the chair of {p}.',
+    problemToast: "We got your payment, but the chair changed hands meanwhile. You'll get a refund.",
+    payPending: "We haven't received your payment yet. If you paid, it can take a minute.",
+    editTitle: 'Edit team', saved: 'Saved',
+    rTeams: 'Teams', rPlayers: 'Players', rChairs: 'Chairs', rCountries: 'Countries',
+    playersTop: 'Top players, last 7 days', noPlayers: 'No votes in the last 7 days yet.',
+    topSeats: 'Most valuable chairs', topHolders: 'Most chairs', noChairs: 'No chairs claimed yet. Be the first for {base}.', seatsN: '{c} chairs', seat1: '1 chair',
+    countriesRank: 'Most painted countries', noCountries: 'No province painted yet.',
+    share_: '{s}%', liveTitle: 'Live', noFeed: 'No activity yet. The first vote shows up here.',
+    fCreated: '{n} started {t}', fSold: '{n} bought {t}', fSeat: '{n} became chair of {p}', fRally: 'rally',
+    toastVote: '{p}: +1 for {t}', joinedToast: 'You joined {t}.', createdToast: '{t} is ready. Go paint.',
+    levelUp: 'Level up! Lv {l} · {title}',
+    worldTitle: 'World control', worldSub: '{x} of {n} provinces painted', worldEmpty: 'No province painted yet. Cast the first vote.', others: 'Others',
+    meGuest: 'You’re not playing yet', meGuestSub: 'Pick a nickname to get your vote, or sign in with a recovery code from another device.',
+    lv: 'Lv {l}', xpTo: '{a} / {b} XP to Lv {l}', xpTotal: '{x} XP total',
+    pVotes: 'votes', pRallies: 'rallies', pSeats: 'chairs', pCountries: 'countries',
+    mySeats: 'My chairs', myTeams: 'Teams I own', favs: 'Most voted provinces', joinedOn: 'Playing since {d}',
+    account: 'Account', codeLabel: 'Your recovery code', show: 'Show', hide: 'Hide', copy: 'Copy',
+    codeNote: 'This code is the key to your account. Use “Sign in with code” on another device to continue there. Don’t share it.',
+    switchAcct: 'Sign in with another code', signOut: 'Sign out', logoutTitle: 'Sign out?',
+    logoutText: "Without your recovery code you can't get this account back. Copy it first.", signedOut: 'Signed out.',
+    profileMissing: "This player doesn't exist.", loading: 'Loading…',
+    contact: 'Contact: {c}',
+    credit: 'Province borders: geoBoundaries (CC BY 4.0). Country borders: Natural Earth.',
+    e: {
+      cooldown: "You've already voted this hour. A new vote opens at :00.",
+      rally_cooldown: 'You can rally once every 24 hours.',
+      bad_nickname: 'Nickname: 3–20 characters, letters, numbers, _ or .',
+      nickname_taken: 'That nickname is taken. Try another one.',
+      bad_team: "That team doesn't exist anymore.",
+      bad_team_name: 'Team name: 3–24 characters, letters and numbers.',
+      team_name_taken: 'A team with that name already exists.',
+      bad_color: 'Pick a color.',
+      team_create_cooldown: 'You can start one team per day.',
+      switch_cooldown: 'You can switch teams once every 24 hours.',
+      owner_cannot_leave: "You own your team, so you can't leave it.",
+      not_owner: 'Only the team owner can do that.',
+      no_team: 'Join a team first.',
+      not_joined: 'Pick a nickname first.',
+      sales_closed: 'Sales open soon.',
+      already_owner: 'You already own this team.',
+      already_chair: "You're already this chair.",
+      too_many_requests: 'Too many tries. Wait a little and try again.',
+      too_many_joins: 'Too many requests from your network. Try again in a while.',
+      ip_limit: 'Too many requests from your network. Try again in a while.',
+      bad_target: "That province can't be voted on.",
+      bad_secret: "That code isn't valid.",
+      net: "Can't reach the server. Check your connection and try again."
+    },
+    docs: {
+      help: `<h3>Basics</h3><ol>
+<li>Pick a nickname, then join a team or start your own.</li>
+<li>You get <b>one vote every clock hour</b>; it refreshes at :00. Tap a country to open its provinces and spend your vote on any province.</li>
+<li>Each province takes the color of the team with the most points in the last 7 days. A lead of 1 point or less shows as stripes (contested).</li>
+<li>Once a day you can <b>rally</b>: +{rally} points to one province in a single move.</li>
+<li>You can switch teams once every 24 hours. A team owner can’t leave their team.</li></ol>
+<h3>Province chairs</h3><ul>
+<li>Every team has one chair in every province. An empty chair costs <b>{base}</b>.</li>
+<li>{takeover}</li>
+<li>The chair of the leading team is the province’s chair, shown on the map with ♛. If that chair is empty, the leading team’s top voter is the acting chair.</li>
+<li>Chairs earn <b>+{xp} XP every hour</b>. Leaving your team gives up your chairs in it.</li></ul>
+<h3>Buying a team</h3><ul>
+<li>Any team can be bought for <b>{price}</b>. The buyer becomes the owner (👑) and can rename it and change its color; the old owner stays as a member. Anyone can buy it again the same way.</li></ul>
+<h3>Levels</h3><p>+1 XP per vote, +{rally} XP per rally, +{xp} XP for every hour as a chair.</p>{levels}`,
+      takeover: 'A held chair goes to the teammate who pays <b>{step} more</b> than the last price.',
+      takeoverFlat: 'A held chair can be taken over for <b>{base}</b>.',
+      terms: `<p class="muted">Last updated: 19 October 2026</p><ul>
+<li>Fethet is a game. Provinces and borders are in-game spaces and make no political claim.</li>
+<li>Your nickname and team name are public. Names that insult, spread hate or impersonate someone can be renamed or removed.</li>
+<li>Bots, multiple accounts used to stack votes, and exploiting bugs aren’t allowed. Votes from abuse can be removed.</li>
+<li>Team ownership and province chairs are digital, in-game privileges. They have no cash value and can’t be exchanged for money.</li>
+<li>Other players can take a team or a chair from you by paying the price shown in the game. That’s part of the game and isn’t refunded.</li>
+<li>We may change rules, prices and features as the game grows. The service is provided as is.</li></ul>`,
+      privacy: `<p class="muted">Last updated: 19 October 2026</p><ul>
+<li>We don’t ask for an email or password. Your device keeps a random recovery code; the server stores only its hash.</li>
+<li>To stop abuse we keep a salted hash of your IP address, never the address itself.</li>
+<li>Your nickname, team, votes and chairs are public.</li>
+<li>Payments are handled by Lemon Squeezy as merchant of record. Your card details never reach us; we receive only the order number and amount.</li>
+<li>Browser storage holds your language and recovery code. No ad or tracking cookies.</li></ul>`,
+      refund: `<p class="muted">Last updated: 19 October 2026</p><ul>
+<li>Purchases are digital privileges delivered instantly, so they aren’t refunded once delivered.</li>
+<li>If we take your payment but can’t deliver (for example, the chair changed hands while you were paying), you get a full refund.</li>
+<li>Your receipt comes by email from Lemon Squeezy. Use the link in it for any payment question or refund request.</li></ul>`
+    }
+  },
+  tr: {
+    brand: 'Fethet', players: 'oyuncu', painted: 'il boyandı', votesHour: 'oy bu saat', votes24: 'puan, 24 saat',
+    chairsShort: 'başkan', teamsShort: 'takım', segHow: 'Oynanış', segTerms: 'Şartlar', segPrivacy: 'Gizlilik', segRefund: 'İade', how: 'Nasıl oynanır', terms: 'Kullanım şartları', privacy: 'Gizlilik', refund: 'İade',
+    tagline: 'Dünyadaki her il kapışmada.',
+    taglineSub: 'Takımını kur, saatte bir oy ver, Tokat’tan Tokyo’ya illeri kendi rengine boya.',
+    unclaimed: 'Sahipsiz', contested: 'Çekişmeli', chaired: 'Başkanı var', loadingMap: 'Harita yükleniyor…', loadingCountry: '{n} yükleniyor…',
+    mapFail: 'Harita yüklenemedi. Bağlantını kontrol et.', countryFail: '{n} illeri yüklenemedi. Tekrar dene.', retry: 'Tekrar dene',
+    tProv: 'Harita', tTeams: 'Takımlar', tRank: 'Sıralama', tLive: 'Canlı', tMe: 'Profil', find: 'İl ara (Tokat, Tokyo…)',
+    hintWorld: 'İllerini açmak için bir ülkeye dokun', hintCountry: 'Seçmek için bir ile dokun',
+    joinTitle: 'Takma ad seç', nick: 'Takma ad', nickHint: '3–20 karakter: harf, rakam, _ veya .',
+    haveCode: 'Daha önce oynadın mı?', useCode: 'Kurtarma koduyla giriş yap',
+    restoreTitle: 'Kodla giriş', restoreText: 'Diğer cihazındaki Profil sekmesinde duran kurtarma kodunu yapıştır.',
+    code: 'Kurtarma kodu', signIn: 'Giriş yap', badCode: 'Bu kodla eşleşen hesap yok. Kodu kontrol edip tekrar dene.', welcomeBack: 'Tekrar hoş geldin, {n}.',
+    next: 'Devam', cancel: 'Vazgeç', save: 'Kaydet', gotIt: 'Tamam', create: 'Takımı kur',
+    teamDlgTitle: 'Takımın', segJoin: 'Takıma katıl', segNew: 'Takım kur', searchTeams: 'Takım ara',
+    teamName: 'Takım adı', teamNameHint: '3–24 karakter.', teamColor: 'Renk',
+    switchNote: 'Takımını 24 saatte bir değiştirebilirsin. Takım sahibi takımından ayrılamaz. Takımdan ayrılırsan oradaki başkanlıklarını kaybedersin.',
+    noTeamsYet: 'Henüz takım yok. İlkini sen kur.',
+    guest: 'Henüz oyunda değilsin', guestState: 'Başlamak için takma ad seç', play: 'Oyna',
+    noTeamState: 'Bir takıma katıl ya da kendi takımını kur', pickTeam: 'Takım seç',
+    ready: 'Oy hakkın hazır', readySel: 'Oy hazır · {p}', pickProv: 'Bir il seç', vote: 'Oy ver', defend: 'Savun', voted: 'Oy verildi',
+    nextPre: 'Yeni oy ', nextPost: ' sonra', clockReady: 'Oy hazır', clockNext: 'Yeni oy hakkın saat başında açılır.',
+    heldBy: 'Sahibi:', unclaimedSub: 'Henüz kimsenin değil. İlk oy alır.', pts: '{p} puan', pt1: '1 puan',
+    standings: 'Puan durumu, son 7 gün', people: '{v} kişi', person1: '1 kişi', lead: 'Fark: {d} puan', tie: 'Berabere',
+    governor: 'İl başkanı', acting: 'Vekil başkan', actingSub: 'Öndeki takımda en çok oy veren · {p}', chairSub: 'Koltuk sahibi · {price}', noGov: 'Henüz başkan yok',
+    topVoters: 'Burada en çok oy verenler', recentHere: 'Bu ildeki son hareketler',
+    yoursPill: 'Senin takımın', hotPill: 'Çekişmeli', freePill: 'Boş', chairPill: 'Başkanlı',
+    chairs: 'İl başkanlığı', chairsNote: 'Her ilde takım başına 1 koltuk',
+    seatOf: '{t} koltuğu', priceNow: 'fiyat', priceTake: 'devralma', seatEmpty: 'Boş koltuk', seatHeld: '{n} · {price}', since: 'koltukta {d}', uMin: '{n} dk', uHour: '{n} sa', uDay: '{n} gün', uHM: '{h} sa {m} dk', uM: '{m} dk',
+    becomeChair: 'Başkan ol · {price}', takeOver: 'Devral · {price}', youChair: 'Başkan sensin',
+    salesSoonShort: 'Başkanlık satışları yakında', seatJoinFirst: 'Başkanlık için önce bir takıma katıl.',
+    seatRule: 'Boş koltuk {base}. Dolu koltuğu, son fiyatın {step} fazlasını ödeyen takım arkadaşın devralır. Başkanlar her saat {xp} XP kazanır; öndeki takımın başkanı haritada ilin başkanı olarak görünür.',
+    seatRuleFlat: 'Koltuk boş da olsa dolu da olsa {base}. Başkanlar her saat {xp} XP kazanır; öndeki takımın başkanı haritada ilin başkanı olarak görünür.',
+    otherChairs: 'Diğer takımların başkanları',
+    seatTitle: 'Başkan ol', seatNowEmpty: 'Bu koltuk boş.', seatNowHeld: 'Şu anki başkan: {n}, ödediği {price}',
+    seatPerk1: 'Takımının {p} başkanı olarak adın görünür; takımın öndeyse haritada ♛ ile.',
+    seatPerk2: 'Koltukta geçen her saat +{xp} XP.', seatPerk3: 'Takım arkadaşın {next} ödeyerek devralabilir.',
+    seatPerk3flat: 'Takım arkadaşın {next} ödeyerek devralabilir.', seatPerk4: 'Takımından ayrılırsan koltuğu kaybedersin.',
+    rally: 'Seferberlik · +{n}', rallyConfirm: 'Tekrar dokun: {p} +{n}', rallyIn: 'Seferberlik {t} sonra', rallyToast: 'Seferberlik! {p}: {t} +{n}',
+    rallyReady: 'Seferberlik hazır: günde bir kez +{n}', rallyHow: 'Bir il aç ve Seferberlik’e dokun.', share: 'Paylaş', copied: 'Bağlantı kopyalandı',
+    shareProv: '{p} şu an Fethet’te {t} takımının. Gel geri al:', shareProvFree: '{p} Fethet’te hâlâ sahipsiz. Kap:',
+    shareTeam: 'Fethet’te {t} takımına katıl, dünyayı boya:', shareMe: 'Fethet’te {n} benim. Takımıma katıl:',
+    pickHint: 'İllerini açmak için haritada bir ülkeye dokun ya da yukarıdan ara.',
+    step1: 'Takıma katıl ya da kur', step1s: 'Rengini seç. Herkes takım kurabilir.',
+    step2: 'Saatte bir oy ver', step2s: 'Her il, 7 günde en çok puanı alan takımın rengine boyanır.',
+    step3: 'İl başkanı ol', step3s: 'Koltuğu {base} karşılığında al, her saat XP kazan.',
+    yourTeam: 'Takımın', holds: '{c} il', hold1: '1 il', members: '{m} üye', member1: '1 üye',
+    hotTitle: 'Şu an kızışan iller', hotNone: 'Henüz başa baş giden il yok.', gap: 'fark {d}', countriesTitle: 'Oyundaki ülkeler', tryCountries: 'Bir yerden başla',
+    world: '← Dünya', ofTotal: '{n} ilin {x} tanesi boyandı', countryTeams: '{c} kimin elinde', provinces: 'İller', showAll: 'Tümünü göster ({n})', showLess: 'Daha az göster',
+    teamsTitle: 'Takımlar', newTeam: 'Takım kur', noTeams: 'Henüz takım yok. İlkini sen kur.', filterTeams: 'Takımlarda ara',
+    owner: 'Sahibi', founder: 'Kurucu', sold: '{s} kez satıldı', sold1: '1 kez satıldı', soldNone: 'Hiç satılmadı',
+    topMembers: 'En çok oy veren üyeler, son 7 gün', buy: 'Takımı satın al · {price}', salesSoon: 'Takım satışları yakında açılacak',
+    youOwn: 'Bu takımın sahibi sensin', edit: 'Takımı düzenle', joinTeam: 'Takıma katıl', yourTeamNow: 'Bu takımdasın', back: '← Geri', allTeams: '← Tüm takımlar',
+    teamProvs: 'Elindeki iller', teamChairs: 'Başkanlar', noneYet: 'Henüz yok.',
+    sHeld: 'il', sMembers: 'üye', sPts: 'puan, 7 gün', sV24: 'puan, 24 saat', sSeats: 'başkanlık', sSales: 'satış',
+    buyTitle: 'Takımı satın al', toCheckout: 'Ödemeye geç',
+    buy1: 'Takımın sahibi olursun, adının yanında taç görünür.', buy2: 'Takımın adını ve rengini değiştirebilirsin.',
+    buy3: 'Bu takıma geçersin. Eski sahip üye olarak kalır.', buy4: 'Başkası da aynı şekilde senden satın alabilir.', buy5: 'Şu anki takımındaki başkanlıklarını bırakırsın.',
+    buyNote: 'Ödeme Lemon Squeezy’nin güvenli ödeme sayfasında yapılır. Ödedikten sonra buraya dön.',
+    checking: 'Ödemen kontrol ediliyor…', boughtToast: 'Artık {t} takımının sahibisin.', seatToast: '♛ Artık {p} başkanısın.',
+    problemToast: 'Ödemen alındı ama koltuk bu sırada el değiştirdi. Ücretin iade edilecek.',
+    payPending: 'Ödemen henüz bize ulaşmadı. Ödediysen bir dakika sürebilir.',
+    editTitle: 'Takımı düzenle', saved: 'Kaydedildi',
+    rTeams: 'Takımlar', rPlayers: 'Oyuncular', rChairs: 'Başkanlar', rCountries: 'Ülkeler',
+    playersTop: 'En iyi oyuncular, son 7 gün', noPlayers: 'Son 7 günde henüz oy yok.',
+    topSeats: 'En değerli koltuklar', topHolders: 'En çok koltuğu olanlar', noChairs: 'Henüz başkanlık alınmadı. {base} ile ilk sen ol.', seatsN: '{c} koltuk', seat1: '1 koltuk',
+    countriesRank: 'En çok boyanan ülkeler', noCountries: 'Henüz boyanan il yok.',
+    share_: '%{s}', liveTitle: 'Canlı', noFeed: 'Henüz hareket yok. İlk oy burada görünecek.',
+    fCreated: '{n}, {t} takımını kurdu', fSold: '{n}, {t} takımını satın aldı', fSeat: '{n}, {p} başkanı oldu', fRally: 'seferberlik',
+    toastVote: '{p}: {t} +1', joinedToast: '{t} takımına katıldın.', createdToast: '{t} kuruldu. Hadi boya.',
+    levelUp: 'Seviye atladın! Lv {l} · {title}',
+    worldTitle: 'Dünya hakimiyeti', worldSub: '{n} ilin {x} tanesi boyandı', worldEmpty: 'Henüz boyanan il yok. İlk oyu sen ver.', others: 'Diğerleri',
+    meGuest: 'Henüz oyunda değilsin', meGuestSub: 'Oy hakkını almak için takma ad seç ya da başka cihazdaki kurtarma kodunla giriş yap.',
+    lv: 'Lv {l}', xpTo: 'Lv {l} için {a} / {b} XP', xpTotal: 'Toplam {x} XP',
+    pVotes: 'oy', pRallies: 'seferberlik', pSeats: 'başkanlık', pCountries: 'ülke',
+    mySeats: 'Başkanlıklarım', myTeams: 'Sahibi olduğum takımlar', favs: 'En çok oy verdiğim iller', joinedOn: '{d} tarihinden beri oynuyor',
+    account: 'Hesap', codeLabel: 'Kurtarma kodun', show: 'Göster', hide: 'Gizle', copy: 'Kopyala',
+    codeNote: 'Bu kod hesabının anahtarı. Başka bir cihazda “Kodla giriş yap” ile devam etmek için kullan. Kimseyle paylaşma.',
+    switchAcct: 'Başka kodla giriş yap', signOut: 'Çıkış yap', logoutTitle: 'Çıkış yapılsın mı?',
+    logoutText: 'Kurtarma kodun olmadan bu hesaba geri dönemezsin. Önce kodu kopyala.', signedOut: 'Çıkış yapıldı.',
+    profileMissing: 'Böyle bir oyuncu yok.', loading: 'Yükleniyor…',
+    contact: 'İletişim: {c}',
+    credit: 'İl sınırları: geoBoundaries (CC BY 4.0). Ülke sınırları: Natural Earth.',
+    e: {
+      cooldown: 'Bu saatin oyunu kullandın. Yeni oy hakkın saat başında açılır.',
+      rally_cooldown: 'Seferberliği 24 saatte bir yapabilirsin.',
+      bad_nickname: 'Takma ad 3–20 karakter olmalı: harf, rakam, _ veya .',
+      nickname_taken: 'Bu takma ad alınmış, başka bir tane dene.',
+      bad_team: 'Bu takım artık yok.',
+      bad_team_name: 'Takım adı 3–24 karakter olmalı, harf ve rakamlardan oluşmalı.',
+      team_name_taken: 'Bu isimde bir takım zaten var.',
+      bad_color: 'Bir renk seç.',
+      team_create_cooldown: 'Günde bir takım kurabilirsin.',
+      switch_cooldown: 'Takımını 24 saatte bir değiştirebilirsin.',
+      owner_cannot_leave: 'Takımın sahibisin, bu yüzden ayrılamazsın.',
+      not_owner: 'Bunu sadece takım sahibi yapabilir.',
+      no_team: 'Önce bir takıma katıl.',
+      not_joined: 'Önce takma ad seç.',
+      sales_closed: 'Satışlar yakında açılacak.',
+      already_owner: 'Bu takımın sahibi zaten sensin.',
+      already_chair: 'Bu koltukta zaten sen varsın.',
+      too_many_requests: 'Çok fazla deneme oldu. Biraz bekleyip tekrar dene.',
+      too_many_joins: 'Ağından çok fazla istek geldi. Biraz sonra tekrar dene.',
+      ip_limit: 'Ağından çok fazla istek geldi. Biraz sonra tekrar dene.',
+      bad_target: 'Bu ile oy verilemez.',
+      bad_secret: 'Bu kod geçerli değil.',
+      net: 'Sunucuya ulaşılamadı. Bağlantını kontrol edip tekrar dene.'
+    },
+    docs: {
+      help: `<h3>Temeller</h3><ol>
+<li>Takma ad seç, bir takıma katıl ya da kendi takımını kur.</li>
+<li><b>Her saat başı 1 oy</b> hakkın olur, saat :00’da yenilenir. Bir ülkeye dokun, illeri açılsın; oyunu istediğin ile ver.</li>
+<li>Her il, son 7 günde en çok puanı toplayan takımın rengine boyanır. Fark 1 puan ya da azsa il çizgili (çekişmeli) görünür.</li>
+<li>Günde bir kez <b>seferberlik</b> yapabilirsin: tek hamlede bir ile +{rally} puan.</li>
+<li>Takımını 24 saatte bir değiştirebilirsin. Takım sahibi takımından ayrılamaz.</li></ol>
+<h3>İl başkanlığı</h3><ul>
+<li>Her takımın her ilde bir başkanlık koltuğu var. Boş koltuk <b>{base}</b>.</li>
+<li>{takeover}</li>
+<li>Öndeki takımın başkanı, ilin başkanı olarak haritada ♛ ile görünür. O koltuk boşsa öndeki takımda en çok oy veren vekil başkan olur.</li>
+<li>Başkanlar <b>her saat +{xp} XP</b> kazanır. Takımından ayrılırsan oradaki başkanlıklarını kaybedersin.</li></ul>
+<h3>Takım satın alma</h3><ul>
+<li>Her takım <b>{price}</b> ödenerek satın alınabilir. Satın alan sahip olur (👑), adını ve rengini değiştirebilir; eski sahip üye olarak kalır. Başkası da aynı şekilde yeniden satın alabilir.</li></ul>
+<h3>Seviyeler</h3><p>Her oy +1 XP, her seferberlik +{rally} XP, başkanlıkta geçen her saat +{xp} XP.</p>{levels}`,
+      takeover: 'Dolu koltuğu, son fiyatın <b>{step} fazlasını</b> ödeyen takım arkadaşın devralır.',
+      takeoverFlat: 'Dolu koltuk da <b>{base}</b> ödenerek devralınabilir.',
+      terms: `<p class="muted">Son güncelleme: 19 Ekim 2026</p><ul>
+<li>Fethet bir oyundur. İller ve sınırlar oyun içi alanlardır, siyasi bir iddia taşımaz.</li>
+<li>Takma adın ve takım adın herkese açıktır. Hakaret eden, nefret yayan ya da başkasını taklit eden adlar değiştirilebilir veya kaldırılabilir.</li>
+<li>Bot kullanmak, oy toplamak için birden çok hesap açmak ve hatalardan faydalanmak yasaktır. Bu yolla verilen oylar silinebilir.</li>
+<li>Takım sahipliği ve il başkanlığı dijital, oyun içi ayrıcalıklardır. Nakit değeri yoktur, paraya çevrilemez.</li>
+<li>Başka oyuncular oyunda gösterilen bedeli ödeyerek takımı veya koltuğu senden devralabilir. Bu oyunun parçasıdır ve iade edilmez.</li>
+<li>Oyun büyüdükçe kuralları, fiyatları ve özellikleri değiştirebiliriz. Hizmet olduğu gibi sunulur.</li></ul>`,
+      privacy: `<p class="muted">Son güncelleme: 19 Ekim 2026</p><ul>
+<li>E-posta ya da şifre istemiyoruz. Cihazında rastgele bir kurtarma kodu saklanır; sunucuda yalnızca özeti (hash) tutulur.</li>
+<li>Kötüye kullanımı önlemek için IP adresinin tuzlanmış özetini saklarız, adresin kendisini asla saklamayız.</li>
+<li>Takma adın, takımın, oyların ve başkanlıkların herkese açıktır.</li>
+<li>Ödemeleri satıcı kaydı (merchant of record) olarak Lemon Squeezy işler. Kart bilgilerin bize hiç ulaşmaz; biz yalnızca sipariş numarasını ve tutarı görürüz.</li>
+<li>Tarayıcı depolamasında yalnızca dil tercihin ve kurtarma kodun durur. Reklam ya da izleme çerezi yok.</li></ul>`,
+      refund: `<p class="muted">Son güncelleme: 19 Ekim 2026</p><ul>
+<li>Satın alımlar anında teslim edilen dijital ayrıcalıklardır; teslim edildikten sonra iade edilmez.</li>
+<li>Ödemeni alıp teslim edemezsek (örneğin sen öderken koltuk el değiştirdiyse) ücretin tamamı iade edilir.</li>
+<li>Makbuzun Lemon Squeezy’den e-postayla gelir. Ödeme soruları ve iade talepleri için makbuzdaki bağlantıyı kullan.</li></ul>`
+    }
+  }
+};
+
+/* ---------- helpers ---------- */
+const $ = (id) => document.getElementById(id);
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (_) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (_) {} }
+};
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'style') el.setAttribute('style', v);
+    else if (k === 'html') el.innerHTML = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) el.append(c.nodeType ? c : String(c));
+  return el;
+}
+const S = {
+  lang: 'en', me: null, secret: null, offset: 0,
+  prov: new Map(), teams: new Map(), feed: [], top: [], chairs: [], players: 0, votes24: 0, votesHour: 0, provTotal: 0,
+  teamsTotal: 0, seatsTotal: 0, pc: {}, price: 200, seatBase: 100, seatStep: 100, seatXp: 20, rallyPts: 10, checkout: false, contact: '',
+  sel: null, detail: null, country: null, countryAll: false, tab: 'prov', teamView: null, teamDetail: null, teamFilter: '',
+  rankMode: 'teams', chairData: null, chairAt: 0, profileView: null, profileData: null, myProfile: null, showCode: false,
+  opened: new Map(), mapReady: false, busy: false, rallyArm: null, loaded: false, pending: null
+};
+function t(key, vars) {
+  if (vars) {
+    if (key === 'pts' && +vars.p === 1) key = 'pt1';
+    else if (key === 'members' && +vars.m === 1) key = 'member1';
+    else if (key === 'holds' && +vars.c === 1) key = 'hold1';
+    else if (key === 'people' && +vars.v === 1) key = 'person1';
+    else if (key === 'seatsN' && +vars.c === 1) key = 'seat1';
+  }
+  let s = (T[S.lang] && T[S.lang][key]) ?? T.en[key] ?? key;
+  if (vars && typeof s === 'string') s = s.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
+  return s;
+}
+function errText(e) {
+  const code = (e && e.code) || 'net';
+  return T[S.lang].e[code] || T.en.e[code] || T[S.lang].e.net;
+}
+const dnCache = {};
+const featName = {};
+function cname(code) {
+  if (!code) return '';
+  try {
+    dnCache[S.lang] = dnCache[S.lang] || new Intl.DisplayNames([S.lang], { type: 'region' });
+    const n = dnCache[S.lang].of(code);
+    if (n && n !== code) return n;
+  } catch (_) {}
+  return featName[code] || code;
+}
+function flag(code) {
+  if (!code || !/^[A-Z]{2}$/.test(code)) return '\u{1F3F3}️';
+  return String.fromCodePoint(...[...code].map((c) => 127397 + c.charCodeAt(0)));
+}
+const fl = (code) => h('span', { class: 'flag', 'aria-hidden': 'true' }, flag(code));
+const dot = (color, size) => h('span', { class: 'dot', style: `background:${color}` + (size ? `;width:${size}px;height:${size}px` : '') });
+function money(cents) {
+  try {
+    return new Intl.NumberFormat(S.lang, { style: 'currency', currency: 'USD', minimumFractionDigits: cents % 100 ? 2 : 0 }).format(cents / 100);
+  } catch (_) { return '$' + (cents / 100); }
+}
+const fmt = (n) => (+n || 0).toLocaleString(S.lang);
+function compact(n) {
+  try { return new Intl.NumberFormat(S.lang, { notation: 'compact', maximumFractionDigits: 1 }).format(+n || 0); } catch (_) { return String(n); }
+}
+function dateStr(ts) {
+  try { return new Date(ts).toLocaleDateString(S.lang, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (_) { return ''; }
+}
+function team(id) { return S.teams.get(id) || null; }
+function teamColor(id) { const x = team(id); return x ? x.color : '#8ea4ba'; }
+function teamName(id) { const x = team(id); return x ? x.name : '…'; }
+function provName(id) {
+  const f = provFeat.get(id);
+  if (f && f.properties && f.properties.n) return f.properties.n;
+  if (provNames.has(id)) return provNames.get(id);
+  const r = S.prov.get(id);
+  if (r && r.nm) return r.nm;
+  if (S.detail && S.detail.id === id && S.detail.name) return S.detail.name;
+  return /^[A-Z]{2}$/.test(id) ? cname(id) : id;
+}
+function provCountry(id) {
+  const f = provFeat.get(id);
+  if (f && f.cc) return f.cc;
+  const r = S.prov.get(id);
+  if (r && r.c) return r.c;
+  if (S.detail && S.detail.id === id) return S.detail.country;
+  return /^[A-Z]{2}/.test(id) ? id.slice(0, 2) : null;
+}
+function guessCountry() {
+  const langs = navigator.languages || [navigator.language || 'en'];
+  for (const l of langs) {
+    try { const r = new Intl.Locale(l).maximize().region; if (r) return r; } catch (_) {}
+  }
+  return 'TR';
+}
+const totalXpFor = (l) => 25 * (Math.max(1, l) - 1) * Math.max(1, l);
+const levelOf = (xp) => Math.max(1, Math.floor((25 + Math.sqrt(625 + 100 * Math.max(0, xp || 0))) / 50));
+function tierOf(l) { let x = TIERS[0]; for (const tr of TIERS) if (l >= tr.min) x = tr; return x; }
+const titleOf = (l) => tierOf(l)[S.lang] || tierOf(l).en;
+function lvlBadge(xp, size) {
+  const l = levelOf(xp);
+  return h('span', { class: 'lvl' + (size ? ' ' + size : ''), style: `--c:${tierOf(l).c}`, title: `${t('lv', { l })} · ${titleOf(l)}` }, l);
+}
+function crownEl(color) { const s = h('span', { style: `color:${color || 'var(--signal)'};display:inline-flex` }); s.innerHTML = CROWN; return s; }
+
+/* ---------- API ---------- */
+async function rpc(name, args) {
+  let res;
+  try {
+    res = await fetch(`${CFG.url}/rest/v1/rpc/${name}`, {
+      method: 'POST',
+      headers: { apikey: CFG.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify(args || {})
+    });
+  } catch (_) { throw { code: 'net' }; }
+  const body = await res.json().catch(() => null);
+  if (!res.ok) throw { code: (body && body.message) || 'net' };
+  return body;
+}
+function newSecret() {
+  const b = new Uint8Array(32);
+  crypto.getRandomValues(b);
+  return [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
+}
+function setMe(me, quiet) {
+  const before = S.me ? levelOf(S.me.xp) : null;
+  if (S.me && me && S.me.nickname !== me.nickname) S.myProfile = null;
+  S.me = me || null;
+  if (!me) S.myProfile = null;
+  if (me && me.now) S.offset = new Date(me.now).getTime() - Date.now();
+  if (me && me.team) {
+    const old = S.teams.get(me.team.id) || {};
+    S.teams.set(me.team.id, Object.assign({}, old, { id: me.team.id, name: me.team.name, color: me.team.color }));
+  }
+  if (me && before != null && !quiet) {
+    const after = levelOf(me.xp);
+    if (after > before) setTimeout(() => toast(t('levelUp', { l: after, title: titleOf(after) })), 1600);
+  }
+  document.body.classList.toggle('playing', !!(me && me.team));
+  renderDock(); renderClock(); renderProv(); renderTeams(); renderMe(); paint();
+}
+async function refresh() {
+  try {
+    const s = await rpc('pw_state');
+    S.teams = new Map((s.teams || []).map((x) => [x.id, x]));
+    if (S.me && S.me.team && !S.teams.has(S.me.team.id)) S.teams.set(S.me.team.id, { id: S.me.team.id, name: S.me.team.name, color: S.me.team.color, members: 1, held: 0 });
+    for (const f of s.feed || []) if (f.i && f.pn) provNames.set(f.i, f.pn);
+    for (const f of s.chairs || []) if (f.i && f.pn) provNames.set(f.i, f.pn);
+    S.prov = new Map((s.map || []).map((r) => [r.i, r]));
+    S.feed = s.feed || [];
+    S.top = s.top || [];
+    S.chairs = s.chairs || [];
+    S.players = s.players || 0;
+    S.votes24 = s.votes24 || 0;
+    S.votesHour = s.votes_hour || 0;
+    S.provTotal = s.provinces_total || 0;
+    S.teamsTotal = s.teams_total || S.teams.size;
+    S.seatsTotal = s.seats_total || 0;
+    if (s.price_cents) S.price = s.price_cents;
+    if (s.seat_base) S.seatBase = s.seat_base;
+    if (s.seat_step != null) S.seatStep = s.seat_step;
+    if (s.seat_xp) S.seatXp = s.seat_xp;
+    if (s.rally) S.rallyPts = s.rally;
+    S.checkout = !!s.checkout;
+    S.contact = s.contact || '';
+    S.loaded = true;
+    if (s.now) S.offset = new Date(s.now).getTime() - Date.now();
+    renderStats(); paint(); renderTeams(); renderLive(); renderRank(); renderDock(); renderTicker(); renderWorld(); renderContact();
+    if (S.tab === 'me') renderMe();
+    if (S.sel) loadDetail(S.sel, true); else renderProv();
+  } catch (_) {}
+}
+const provNames = new Map();
+
+/* ---------- map ---------- */
+const svg = d3.select('#map');
+const wrap = $('mapWrap');
+let W = 0, H = 0, proj, path, zoom, K = 1;
+let feats = [], byCode = new Map(), anchors = new Map();
+const provFeat = new Map();
+const gRoot = svg.append('g');
+const defs = svg.append('defs');
+const hatchPat = defs.append('pattern').attr('id', 'hatch').attr('patternUnits', 'userSpaceOnUse').attr('width', 6).attr('height', 6)
+  .attr('patternTransform', 'rotate(45)');
+hatchPat.append('rect').attr('width', 2.2).attr('height', 6).attr('fill', 'rgba(255,255,255,.55)');
+const gSphere = gRoot.append('path').attr('class', 'sphere');
+const gGrat = gRoot.append('path').attr('class', 'grat');
+const gLand = gRoot.append('g');
+const gProv = gRoot.append('g');
+const gBorder = gRoot.append('g');
+const gHatch = gRoot.append('g');
+const gSel = gRoot.append('path').attr('class', 'sel');
+const gLbl = gRoot.append('g');
+
+function topoFeatures(topo, name) {
+  const tr = topo.transform;
+  const kx = tr ? tr.scale[0] : 1, ky = tr ? tr.scale[1] : 1;
+  const dx = tr ? tr.translate[0] : 0, dy = tr ? tr.translate[1] : 0;
+  const arcs = topo.arcs.map((a) => {
+    let x = 0, y = 0;
+    return a.map((p) => (tr ? [(x += p[0]) * kx + dx, (y += p[1]) * ky + dy] : [p[0], p[1]]));
+  });
+  const ring = (idx) => {
+    const pts = [];
+    for (const i of idx) {
+      if (pts.length) pts.pop();
+      const a = arcs[i < 0 ? ~i : i];
+      const seg = i < 0 ? a.slice().reverse() : a;
+      for (const p of seg) pts.push(p);
+    }
+    while (pts.length < 4) pts.push(pts[0]);
+    return pts;
+  };
+  return topo.objects[name].geometries.map((g) => {
+    let geometry = null;
+    if (g.type === 'Polygon') geometry = { type: 'Polygon', coordinates: g.arcs.map(ring) };
+    else if (g.type === 'MultiPolygon') geometry = { type: 'MultiPolygon', coordinates: g.arcs.map((p) => p.map(ring)) };
+    return { type: 'Feature', id: g.id, properties: g.properties || {}, geometry };
+  }).filter((f) => f.geometry);
+}
+
+async function loadMap() {
+  const st = $('mapStatus');
+  st.hidden = false;
+  st.replaceChildren(h('div', null, t('loadingMap')));
+  try {
+    const res = await fetch(CFG.atlas);
+    if (!res.ok) throw new Error('atlas');
+    feats = topoFeatures(await res.json(), 'countries');
+  } catch (_) {
+    st.replaceChildren(h('div', null, t('mapFail'), h('br'), h('button', { class: 'chip', type: 'button', style: 'margin-top:10px', onclick: loadMap }, t('retry'))));
+    return;
+  }
+  byCode = new Map();
+  for (const f of feats) {
+    const id = f.id != null ? String(f.id).padStart(3, '0') : null;
+    f.code = (id && NUM2A2[id]) || NAME2A2[f.properties.name] || null;
+    if (f.code) {
+      featName[f.code] = featName[f.code] || f.properties.name;
+      if (!byCode.has(f.code)) byCode.set(f.code, []);
+      byCode.get(f.code).push(f);
+    }
+  }
+  st.hidden = true;
+  S.mapReady = true;
+  layout(true);
+}
+
+function largestPoly(geom) {
+  const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.type === 'MultiPolygon' ? geom.coordinates : [];
+  let best = null, bestA = -1;
+  for (const p of polys) {
+    const g = { type: 'Polygon', coordinates: p };
+    const a = path.area(g);
+    if (a > bestA) { bestA = a; best = g; }
+  }
+  return best ? { xy: path.centroid(best), area: bestA } : null;
+}
+
+function layout(first) {
+  const r = wrap.getBoundingClientRect();
+  if (!r.width || !r.height || !feats.length) return;
+  W = r.width; H = r.height;
+  svg.attr('viewBox', `0 0 ${W} ${H}`);
+  proj = d3.geoNaturalEarth1().fitExtent([[6, 6], [W - 6, H - 6]], { type: 'Sphere' });
+  path = d3.geoPath(proj);
+  gSphere.attr('d', path({ type: 'Sphere' }));
+  gGrat.attr('d', path(d3.geoGraticule10()));
+  gLand.selectAll('path').data(feats).join('path')
+    .attr('class', (d) => 'land' + (d.code ? ' playable' : ' dead'))
+    .attr('d', path)
+    .on('click', (ev, d) => { if (d.code) focusCountry(d.code, true); })
+    .on('pointermove', (ev, d) => showTip(ev, { country: d.code }))
+    .on('pointerleave', hideTip);
+  anchors = new Map();
+  for (const [code, fs] of byCode) {
+    let best = null;
+    for (const f of fs) { const a = largestPoly(f.geometry); if (a && (!best || a.area > best.area)) best = a; }
+    if (best) anchors.set(code, best);
+  }
+  for (const f of provFeat.values()) f.anchor = largestPoly(f.geometry);
+  const sb = path.bounds({ type: 'Sphere' });
+  const mh = sb[1][1] - sb[0][1];
+  zoom = d3.zoom().scaleExtent([1, 120]).translateExtent([[sb[0][0] - 4, sb[0][1] - 4], [sb[1][0] + 4, sb[1][1] + 4]])
+    .on('zoom', (ev) => {
+      gRoot.attr('transform', ev.transform);
+      K = ev.transform.k;
+      hatchPat.attr('patternTransform', `rotate(45) scale(${(1 / K).toFixed(4)})`);
+      hideTip();
+      scheduleLabels();
+    });
+  svg.call(zoom).on('dblclick.zoom', null);
+  const fill = H / mh;
+  if (first && fill > 1.25 && W < 700) {
+    const a = anchors.get(guessCountry());
+    svg.call(zoom.scaleTo, Math.min(3.2, fill * 1.05));
+    svg.call(zoom.translateTo, a ? a.xy[0] : W * 0.55, a ? a.xy[1] : H * 0.42);
+  } else {
+    svg.call(zoom.transform, d3.zoomIdentity);
+  }
+  renderProvinces();
+  paint();
+}
+
+function countrySummary() {
+  const by = new Map();
+  for (const r of S.prov.values()) {
+    if (!by.has(r.c)) by.set(r.c, new Map());
+    const m = by.get(r.c);
+    m.set(r.t, (m.get(r.t) || 0) + 1);
+  }
+  const out = new Map();
+  for (const [c, m] of by) {
+    let bt = null, bn = 0, all = 0;
+    for (const [tid, n] of m) { all += n; if (n > bn) { bn = n; bt = tid; } }
+    const total = Math.max(S.pc[c] || 0, all, 1);
+    out.set(c, { t: bt, frac: bn / total, painted: all, total, byTeam: m });
+  }
+  return out;
+}
+
+function paint() {
+  if (!S.mapReady) return;
+  const sum = countrySummary();
+  gLand.selectAll('path')
+    .classed('opened', (d) => !!(d.code && S.opened.has(d.code) && S.opened.get(d.code).status === 'ready'))
+    .attr('fill', (d) => {
+      if (!d.code) return null;
+      const o = S.opened.get(d.code);
+      if (o && o.status === 'ready') return 'var(--land)';
+      const s = sum.get(d.code);
+      return s ? teamColor(s.t) : 'var(--land)';
+    })
+    .attr('fill-opacity', (d) => {
+      const s = d.code && sum.get(d.code);
+      const o = d.code && S.opened.get(d.code);
+      return s && !(o && o.status === 'ready') ? (0.45 + 0.55 * s.frac).toFixed(2) : 1;
+    });
+  gProv.selectAll('path').attr('fill', (d) => {
+    const r = S.prov.get(d.id);
+    return r ? teamColor(r.t) : 'var(--land-open)';
+  });
+  const hot = [...provFeat.values()].filter((f) => isHot(S.prov.get(f.id)));
+  gHatch.selectAll('path').data(hot, (d) => d.id).join('path').attr('class', 'hatch').attr('d', path);
+  drawLabels();
+  updateHint();
+}
+function isHot(r) { return !!(r && r.s && r.p - r.sp <= 1); }
+
+function renderProvinces() {
+  if (!S.mapReady) return;
+  const list = [];
+  const borders = [];
+  for (const [code, o] of S.opened) {
+    if (o.status !== 'ready') continue;
+    for (const f of o.feats) list.push(f);
+    for (const f of byCode.get(code) || []) borders.push(f);
+  }
+  for (const f of list) if (!f.anchor) f.anchor = largestPoly(f.geometry);
+  gProv.selectAll('path').data(list, (d) => d.id).join('path')
+    .attr('class', 'prov')
+    .attr('d', path)
+    .on('click', (ev, d) => select(d.id))
+    .on('pointermove', (ev, d) => showTip(ev, { prov: d.id, country: d.cc }))
+    .on('pointerleave', hideTip);
+  gBorder.selectAll('path').data(borders).join('path').attr('class', 'cborder').attr('d', path);
+  renderSel();
+}
+
+let lblQueued = false;
+function scheduleLabels() {
+  if (lblQueued) return;
+  lblQueued = true;
+  requestAnimationFrame(() => { lblQueued = false; drawLabels(); });
+}
+function drawLabels() {
+  if (!S.mapReady) return;
+  const data = [];
+  for (const f of provFeat.values()) {
+    const a = f.anchor;
+    if (a && f.properties.n && a.area * K * K > 2600) {
+      const r = S.prov.get(f.id);
+      data.push({ id: f.id, xy: a.xy, n: f.properties.n, crown: !!(r && r.gc) });
+    }
+  }
+  const fs = 11 / K;
+  gLbl.selectAll('text').data(data, (d) => d.id).join('text')
+    .attr('class', 'plbl')
+    .attr('x', (d) => d.xy[0]).attr('y', (d) => d.xy[1])
+    .attr('font-size', fs).attr('stroke-width', 3 / K)
+    .each(function (d) {
+      const el = d3.select(this);
+      el.text(d.n);
+      if (d.crown) el.append('tspan').attr('class', 'crown').text(' ♛');
+    });
+}
+function renderSel() {
+  if (!S.mapReady) return;
+  const f = S.sel ? provFeat.get(S.sel) : null;
+  gSel.attr('d', f ? path(f) : null);
+}
+function updateHint() {
+  const el = $('hint');
+  if (!S.mapReady) { el.hidden = true; return; }
+  const anyOpen = [...S.opened.values()].some((o) => o.status === 'ready');
+  document.body.classList.toggle('explored', anyOpen);
+  const loading = [...S.opened.entries()].find(([, o]) => o.status === 'loading');
+  if (loading) { el.textContent = t('loadingCountry', { n: cname(loading[0]) }); el.hidden = false; return; }
+  if (S.sel) { el.hidden = true; return; }
+  el.textContent = anyOpen ? t('hintCountry') : t('hintWorld');
+  el.hidden = false;
+}
+function zoomToBounds(geo, maxK) {
+  if (!zoom) return;
+  const [[x0, y0], [x1, y1]] = path.bounds(geo);
+  const bw = Math.max(x1 - x0, 1), bh = Math.max(y1 - y0, 1);
+  let k = Math.min(maxK || 60, 0.82 / Math.max(bw / W, bh / H));
+  k = Math.max(1, k);
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  const tf = d3.zoomIdentity.translate(W / 2, H / 2).scale(k).translate(-cx, -cy);
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  (reduce ? svg : svg.transition().duration(650)).call(zoom.transform, tf);
+}
+function zoomToCountry(code) {
+  const fs = byCode.get(code);
+  if (!fs || !path) return;
+  const a = anchors.get(code);
+  let geo = { type: 'FeatureCollection', features: fs };
+  const [[x0, y0], [x1, y1]] = path.bounds(geo);
+  if (a && (x1 - x0) * (y1 - y0) > a.area * 6) {
+    const main = fs.flatMap((f) => (f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates))
+      .map((p) => ({ type: 'Polygon', coordinates: p })).sort((p, q) => path.area(q) - path.area(p))[0];
+    if (main) geo = main;
+  }
+  zoomToBounds(geo, 40);
+}
+function mergeGeoms(fs) {
+  const polys = [];
+  for (const f of fs) {
+    if (f.geometry.type === 'Polygon') polys.push(f.geometry.coordinates);
+    else if (f.geometry.type === 'MultiPolygon') polys.push(...f.geometry.coordinates);
+  }
+  return { type: 'MultiPolygon', coordinates: polys };
+}
+async function openCountry(code, zoomIt) {
+  let o = S.opened.get(code);
+  if (o && o.status === 'ready') { if (zoomIt) zoomToCountry(code); return o; }
+  if (o && o.status === 'loading') return o.promise;
+  o = { status: 'loading', feats: [] };
+  S.opened.set(code, o);
+  if (zoomIt) zoomToCountry(code);
+  updateHint();
+  o.promise = (async () => {
+    try {
+      const res = await fetch(CFG.maps + code + '.json');
+      if (!res.ok) throw new Error('missing');
+      const gj = await res.json();
+      let list = gj.features || [];
+      if (!list.length) {
+        const cf = byCode.get(code) || [];
+        list = cf.length ? [{ type: 'Feature', id: code, properties: { n: null }, geometry: mergeGeoms(cf) }] : [];
+      }
+      for (const f of list) { f.cc = code; provFeat.set(f.id, f); }
+      o.feats = list;
+      o.status = 'ready';
+    } catch (_) {
+      S.opened.delete(code);
+      toast(t('countryFail', { n: cname(code) }), true);
+    }
+    renderProvinces();
+    paint();
+    if (S.country === code && !S.sel) renderProv();
+    return S.opened.get(code);
+  })();
+  return o.promise;
+}
+function focusCountry(code, zoomIt) {
+  S.country = code;
+  S.countryAll = false;
+  S.sel = null;
+  S.detail = null;
+  renderSel();
+  showTab('prov');
+  renderProv();
+  renderDock();
+  setHash('c=' + code);
+  openCountry(code, zoomIt);
+}
+function showTip(ev, info) {
+  if (ev.pointerType && ev.pointerType !== 'mouse') return;
+  const tip = $('tip');
+  const [x, y] = d3.pointer(ev, wrap);
+  if (info.prov) {
+    const r = S.prov.get(info.prov);
+    tip.replaceChildren(h('div', null, provName(info.prov), r && r.gc ? ' ♛' : ''),
+      h('small', null, fl(info.country), cname(info.country), r ? h('span', null, ' · ') : null, r ? dot(teamColor(r.t)) : null, r ? teamName(r.t) : null, r ? ' · ' + t('pts', { p: r.p }) : null));
+  } else if (info.country) {
+    const s = countrySummary().get(info.country);
+    tip.replaceChildren(h('div', null, fl(info.country), ' ', cname(info.country)),
+      h('small', null, s ? [dot(teamColor(s.t)), t('ofTotal', { x: s.painted, n: s.total })] : t('hintWorld')));
+  } else return hideTip();
+  tip.style.left = x + 'px';
+  tip.style.top = y + 'px';
+  tip.hidden = false;
+}
+function hideTip() { $('tip').hidden = true; }
+
+/* ---------- Map tab: home / country / province ---------- */
+async function select(id, zoomIt) {
+  S.sel = id;
+  S.detail = null;
+  S.rallyArm = null;
+  const cc = provCountry(id);
+  if (cc) S.country = cc;
+  renderSel();
+  renderProv();
+  renderDock();
+  updateHint();
+  showTab('prov');
+  setHash('p=' + id);
+  if (zoomIt) { const f = provFeat.get(id); if (f) zoomToBounds(f, 60); }
+  loadDetail(id);
+}
+async function loadDetail(id, quiet) {
+  try {
+    const d = await rpc('pw_province', { p_id: id });
+    if (d && d.name) provNames.set(id, d.name);
+    if (S.sel === id) { S.detail = d; renderProv(); renderDock(); }
+  } catch (_) { if (!quiet && S.sel === id) renderProv(); }
+}
+async function goToProvince(id, country) {
+  const cc = country || provCountry(id);
+  if (!cc) return;
+  if (!S.mapReady) { S.pending = { p: id, c: cc }; return; }
+  const o = await openCountry(cc, false);
+  if (!o || o.status !== 'ready') return;
+  if (!provFeat.has(id)) return;
+  select(id, true);
+}
+function myTeamCard() {
+  if (!S.me || !S.me.team) return null;
+  const tm = team(S.me.team.id) || S.me.team;
+  return h('button', { class: 'card', type: 'button', onclick: () => openTeam(S.me.team.id) },
+    dot(tm.color, 22),
+    h('div', null, h('small', null, t('yourTeam')), h('b', null, tm.name),
+      h('small', null, t('holds', { c: tm.held || 0 }), ' · ', t('members', { m: tm.members || 1 }), ' · ', t('seatsN', { c: tm.seats || 0 }))));
+}
+function statGrid(items, four) {
+  return h('div', { class: 'statgrid' + (four ? ' four' : '') }, items.map(([v, l]) => h('div', { class: 'stat' }, h('b', null, v), h('small', null, l))));
+}
+function renderProv() {
+  const body = $('provBody');
+  if (S.sel) return renderProvince(body);
+  if (S.country) return renderCountry(body);
+  renderHome(body);
+}
+function renderHome(body) {
+  const parts = [];
+  if (!S.me || !S.me.team) {
+    parts.push(h('div', { class: 'steps' },
+      h('div', null, h('div', null, h('b', null, t('step1')), h('small', null, t('step1s')))),
+      h('div', null, h('div', null, h('b', null, t('step2')), h('small', null, t('step2s')))),
+      h('div', null, h('div', null, h('b', null, t('step3')), h('small', null, t('step3s', { base: money(S.seatBase) }))))));
+  }
+  parts.push(myTeamCard());
+  parts.push(statGrid([[compact(S.players), t('players')], [compact(S.votesHour), t('votesHour')],
+    [compact(S.prov.size), t('painted')], [compact(S.seatsTotal), t('chairsShort')]], true));
+  const hot = [...S.prov.values()].filter(isHot).sort((a, b) => b.n - a.n).slice(0, 6);
+  parts.push(h('h3', { class: 'sec' }, t('hotTitle')));
+  if (!hot.length) parts.push(h('p', { class: 'empty' }, t('hotNone')));
+  else parts.push(h('ul', { class: 'list flat' }, hot.map((r) =>
+    h('li', { class: 'click', onclick: () => goToProvince(r.i, r.c) }, dot(teamColor(r.t)),
+      h('span', { class: 'nm' }, flag(r.c), ' ', provName(r.i), ' ', h('small', null, teamName(r.t), ' vs ', teamName(r.s))),
+      h('span', { class: 'v num' }, t('gap', { d: r.p - r.sp }))))));
+  const sum = countrySummary();
+  const ranked = [...sum.entries()].sort((a, b) => b[1].painted - a[1].painted).slice(0, 12);
+  parts.push(h('h3', { class: 'sec' }, ranked.length ? t('countriesTitle') : t('tryCountries')));
+  const codes = ranked.length ? ranked.map(([c, s]) => [c, s]) : POPULAR.map((c) => [c, null]);
+  parts.push(h('div', { class: 'chips' }, codes.map(([c, s]) =>
+    h('button', { type: 'button', class: 'chip', onclick: () => focusCountry(c, true) }, fl(c), cname(c), s ? h('small', null, `${s.painted}/${s.total}`) : null))));
+  parts.push(h('p', { class: 'note' }, t('pickHint')));
+  body.replaceChildren(...parts.filter(Boolean));
+}
+function renderCountry(body) {
+  const code = S.country;
+  const o = S.opened.get(code);
+  const sum = countrySummary().get(code);
+  const rows = new Map();
+  if (o && o.status === 'ready') for (const f of o.feats) rows.set(f.id, { id: f.id, n: f.properties.n || cname(code), r: S.prov.get(f.id) });
+  for (const r of S.prov.values()) if (r.c === code && !rows.has(r.i)) rows.set(r.i, { id: r.i, n: provName(r.i), r });
+  const list = [...rows.values()].sort((a, b) => (b.r ? b.r.n : -1) - (a.r ? a.r.n : -1) || a.n.localeCompare(b.n, S.lang));
+  const total = Math.max(S.pc[code] || 0, list.length);
+  const painted = list.filter((x) => x.r).length;
+  const parts = [
+    h('button', { type: 'button', class: 'back', onclick: () => { S.country = null; setHash(''); renderProv(); } }, t('world')),
+    h('div', { class: 'c-head' },
+      h('span', { class: 'badge', style: sum ? `background:${teamColor(sum.t)}` : null }, fl(code)),
+      h('div', { style: 'min-width:0' }, h('h2', null, cname(code)),
+        h('div', { class: 'c-sub' }, total ? t('ofTotal', { x: painted, n: total }) : t('loading'))))
+  ];
+  if (sum && sum.byTeam.size) {
+    const tl = [...sum.byTeam.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const max = tl[0][1];
+    parts.push(h('div', { class: 'eyebrow' }, t('countryTeams', { c: cname(code) })));
+    parts.push(h('div', { class: 'bars' }, tl.map(([tid, n]) =>
+      h('div', { class: 'bar' },
+        h('div', { class: 'lab' }, dot(teamColor(tid)), h('button', { type: 'button', class: 'linkish', onclick: () => openTeam(tid) }, teamName(tid))),
+        h('div', { class: 'num' }, t('holds', { c: n })),
+        h('div', { class: 'track' }, h('div', { class: 'fill', style: `width:${Math.max(4, (n / max) * 100)}%;background:${teamColor(tid)}` }))))));
+  }
+  if (!o || o.status !== 'ready') parts.push(h('p', { class: 'empty' }, t('loadingCountry', { n: cname(code) })));
+  if (list.length) {
+    const lim = S.countryAll ? list.length : 40;
+    parts.push(h('div', { class: 'eyebrow' }, t('provinces'), h('small', null, fmt(list.length))));
+    parts.push(h('ul', { class: 'list flat' }, list.slice(0, lim).map((x) =>
+      h('li', { class: 'click' + (x.r && S.me && S.me.team && x.r.t === S.me.team.id ? ' me' : ''), onclick: () => goToProvince(x.id, code) },
+        dot(x.r ? teamColor(x.r.t) : 'var(--land-open)'),
+        h('span', { class: 'nm' }, x.n, x.r && x.r.gc ? ' ♛' : '', ' ', x.r ? h('small', null, teamName(x.r.t)) : null),
+        h('span', { class: 'v num' }, x.r ? t('pts', { p: x.r.p }) : '—')))));
+    if (list.length > 40) parts.push(h('button', { type: 'button', class: 'more', onclick: () => { S.countryAll = !S.countryAll; renderProv(); } },
+      S.countryAll ? t('showLess') : t('showAll', { n: list.length })));
+  }
+  body.replaceChildren(...parts.filter(Boolean));
+}
+function untilText(ts) {
+  const s = Math.max(0, Math.ceil((new Date(ts).getTime() - now()) / 1000));
+  const hh = Math.floor(s / 3600), mm = Math.floor((s % 3600) / 60);
+  return hh ? t('uHM', { h: hh, m: String(mm).padStart(2, '0') }) : t('uM', { m: mm });
+}
+function canRally() {
+  if (!S.me || !S.me.team) return false;
+  if (S.me.can_rally) return true;
+  return !!(S.me.rally_at && now() >= new Date(S.me.rally_at).getTime());
+}
+function nextSeatPrice(seat) {
+  if (!seat) return S.seatBase;
+  return S.seatStep ? seat.price + S.seatStep : S.seatBase;
+}
+function renderProvince(body) {
+  const id = S.sel;
+  const cc = provCountry(id);
+  const r = S.prov.get(id);
+  const d = S.detail;
+  const myTeam = S.me && S.me.team ? S.me.team.id : null;
+  const pills = [];
+  if (r && myTeam && r.t === myTeam) pills.push(h('span', { class: 'pill mine' }, t('yoursPill')));
+  if (isHot(r)) pills.push(h('span', { class: 'pill hot' }, t('hotPill')));
+  if (r && r.gc) pills.push(h('span', { class: 'pill gold' }, '♛ ' + t('chairPill')));
+  if (!r) pills.push(h('span', { class: 'pill free' }, t('freePill')));
+  const parts = [
+    cc ? h('button', { type: 'button', class: 'back', onclick: () => { S.sel = null; S.detail = null; renderSel(); updateHint(); renderDock(); setHash('c=' + cc); renderProv(); } }, '← ', cname(cc)) : null,
+    h('div', { class: 'c-head' },
+      h('span', { class: 'badge', style: r ? `background:${teamColor(r.t)}` : null }, fl(cc)),
+      h('div', { style: 'min-width:0' },
+        h('h2', null, provName(id)),
+        h('div', { class: 'c-sub' }, cc ? cname(cc) : '', r ? ' · ' : '', r ? t('heldBy') : '', r ? dot(teamColor(r.t)) : null,
+          r ? h('button', { type: 'button', class: 'linkish', onclick: () => openTeam(r.t) }, teamName(r.t)) : null))),
+    pills.length ? h('div', { class: 'pills' }, pills) : null,
+    !r ? h('p', { class: 'empty' }, t('unclaimedSub')) : null
+  ];
+  const acts = h('div', { class: 'actions' });
+  if (myTeam) {
+    if (canRally()) {
+      const armed = S.rallyArm && S.rallyArm.id === id && Date.now() - S.rallyArm.at < 4000;
+      acts.append(h('button', { type: 'button', class: 'cta' + (armed ? '' : ' ghost'), disabled: S.busy, onclick: () => rally(id) },
+        '⚡ ', armed ? t('rallyConfirm', { n: S.rallyPts, p: provName(id) }) : t('rally', { n: S.rallyPts })));
+    } else if (S.me.rally_at) {
+      acts.append(h('button', { type: 'button', class: 'cta ghost', disabled: true }, '⚡ ', t('rallyIn', { t: untilText(S.me.rally_at) })));
+    }
+  }
+  acts.append(h('button', { type: 'button', class: 'cta ghost', onclick: () => share('p', id, r ? t('shareProv', { p: provName(id), t: teamName(r.t) }) : t('shareProvFree', { p: provName(id) })) }, t('share')));
+  parts.push(acts);
+
+  if (!d) parts.push(h('p', { class: 'empty' }, t('loading')));
+  else {
+    if (d.teams && d.teams.length) {
+      const max = Math.max(...d.teams.map((x) => x.p));
+      const lead = d.teams.length > 1 ? d.teams[0].p - d.teams[1].p : d.teams[0].p;
+      parts.push(h('div', { class: 'eyebrow' }, t('standings'), h('small', null, lead ? t('lead', { d: lead }) : t('tie'))));
+      parts.push(h('div', { class: 'bars' }, d.teams.map((x) =>
+        h('div', { class: 'bar' },
+          h('div', { class: 'lab' }, dot(x.color), h('button', { type: 'button', class: 'linkish', onclick: () => openTeam(x.t) }, x.name), h('small', null, t('people', { v: x.v }))),
+          h('div', { class: 'num' }, x.p),
+          h('div', { class: 'track' }, h('div', { class: 'fill', style: `width:${Math.max(4, (x.p / max) * 100)}%;background:${x.color}` }))))));
+    }
+    const gov = h('div', { class: 'card' }, crownEl(r && r.gc ? 'var(--signal)' : 'var(--faint)'));
+    if (r && r.g) {
+      gov.append(h('div', null, h('small', null, r.gc ? t('governor') : t('acting')),
+        h('button', { type: 'button', class: 'linkish', onclick: () => openProfile(r.g) }, h('b', null, r.g)),
+        h('small', null, teamName(r.t), ' · ', r.gc ? t('chairSub', { price: money(r.gs) }) : t('actingSub', { p: t('pts', { p: r.gp }) }))));
+    } else gov.append(h('div', null, h('small', null, t('governor')), h('b', null, t('noGov'))));
+    parts.push(gov);
+    parts.push(seatSection(id, d));
+    if (d.voters && d.voters.length) {
+      parts.push(h('div', { class: 'eyebrow' }, t('topVoters')));
+      parts.push(h('ul', { class: 'list' }, d.voters.slice(0, 6).map((v, i) =>
+        h('li', { class: 'click' + (S.me && S.me.nickname === v.n ? ' me' : ''), onclick: () => openProfile(v.n) },
+          h('span', { class: 'rk num' }, i + 1), dot(v.tc), h('span', { class: 'nm' }, v.n, ' ', h('small', null, v.tn)),
+          h('span', { class: 'v num' }, t('pts', { p: v.p }))))));
+    }
+    if (d.recent && d.recent.length) {
+      parts.push(h('div', { class: 'eyebrow' }, t('recentHere')));
+      parts.push(h('ul', { class: 'list feed' }, d.recent.map((v) =>
+        h('li', { class: 'click', onclick: () => openProfile(v.n) }, dot(teamColor(v.t)),
+          h('span', { class: 'nm' }, h('b', null, v.n), ' ', v.a > 1 ? h('span', { style: 'color:var(--signal)' }, '⚡ +' + v.a) : '+1', ' ', h('small', null, teamName(v.t))),
+          h('span', { class: 'v' }, ago(v.at))))));
+    }
+  }
+  body.replaceChildren(...parts.filter(Boolean));
+}
+function seatSection(id, d) {
+  const seats = d.seats || [];
+  const myTeam = S.me && S.me.team ? S.me.team.id : null;
+  const mine = myTeam ? seats.find((s) => s.t === myTeam) : null;
+  const box = h('div', { class: 'seatbox' });
+  const wrapEl = h('div', { class: 'panel', style: 'gap:8px' }, h('div', { class: 'eyebrow' }, t('chairs'), h('small', null, t('chairsNote'))), box);
+  if (!myTeam) {
+    box.append(h('div', { class: 'seatrow' }, crownEl('var(--signal)'),
+      h('div', null, h('b', null, t('becomeChair', { price: money(S.seatBase) })), h('small', null, t('seatJoinFirst')))),
+      h('button', { type: 'button', class: 'cta', onclick: () => (S.me ? openTeamDlg('join') : openJoin()) }, S.me ? t('pickTeam') : t('play')));
+  } else {
+    const tm = team(myTeam) || S.me.team;
+    const isMe = mine && S.me && mine.n === S.me.nickname;
+    const nextP = nextSeatPrice(mine);
+    box.append(h('div', { class: 'seatrow' }, crownEl(mine ? 'var(--signal)' : 'var(--faint)'),
+      h('div', null,
+        h('small', null, dot(tm.color, 10), ' ', t('seatOf', { t: tm.name })),
+        mine ? h('button', { type: 'button', class: 'linkish', onclick: () => openProfile(mine.n) }, h('b', null, mine.n, isMe ? ' 👑' : '')) : h('b', null, t('seatEmpty')),
+        mine ? h('small', null, money(mine.price), ' · ', t('since', { d: dur(mine.since) })) : null),
+      h('div', { class: 'price' }, h('small', null, mine ? t('priceTake') : t('priceNow')), money(nextP))));
+    if (isMe) box.append(h('span', { class: 'pill gold', style: 'align-self:flex-start' }, '♛ ' + t('youChair')));
+    else box.append(h('button', { type: 'button', class: 'cta', disabled: !S.checkout, onclick: () => openSeat(id) },
+      !S.checkout ? t('salesSoonShort') : mine ? t('takeOver', { price: money(nextP) }) : t('becomeChair', { price: money(nextP) })));
+  }
+  box.append(h('p', { class: 'note' }, S.seatStep
+    ? t('seatRule', { base: money(S.seatBase), step: money(S.seatStep), xp: S.seatXp })
+    : t('seatRuleFlat', { base: money(S.seatBase), xp: S.seatXp })));
+  const others = seats.filter((s) => s.t !== myTeam);
+  if (others.length) {
+    wrapEl.append(h('div', { class: 'eyebrow', style: 'margin-top:6px' }, t('otherChairs')));
+    wrapEl.append(h('ul', { class: 'list' }, others.slice(0, 8).map((s, i) =>
+      h('li', { class: 'click', onclick: () => openProfile(s.n) }, h('span', { class: 'rk num' }, i + 1), dot(s.color),
+        h('span', { class: 'nm' }, s.n, ' ', h('small', null, s.name)), h('span', { class: 'v num' }, money(s.price))))));
+  }
+  return wrapEl;
+}
+
+/* ---------- Teams tab ---------- */
+function openTeam(id) {
+  S.teamView = id;
+  S.teamDetail = null;
+  showTab('teams');
+  renderTeams();
+  setHash('t=' + id);
+  rpc('pw_team', { p_team: id }).then((d) => { if (S.teamView === id) { S.teamDetail = d; if (d && d.name) { const old = S.teams.get(id) || {}; S.teams.set(id, Object.assign({}, old, { id, name: d.name, color: d.color })); } renderTeams(); } }).catch(() => {});
+}
+let teamsUI = null;
+function renderTeams() {
+  const body = $('teamsBody');
+  if (S.teamView) return renderTeamView(body);
+  if (!teamsUI) {
+    const input = h('input', { type: 'search', autocomplete: 'off' });
+    input.addEventListener('input', () => { S.teamFilter = input.value; renderTeams(); });
+    teamsUI = {
+      input,
+      btn: h('button', { type: 'button', class: 'cta small', onclick: () => openTeamDlg('new') }),
+      title: h('h3', { class: 'sec' }),
+      list: h('ul', { class: 'list' })
+    };
+    teamsUI.head = [h('div', { class: 'actions' }, teamsUI.btn), h('div', { class: 'search' }, input), teamsUI.title];
+  }
+  const U = teamsUI;
+  U.btn.textContent = t('newTeam');
+  U.title.textContent = t('teamsTitle');
+  U.input.placeholder = t('filterTeams');
+  U.input.setAttribute('aria-label', t('filterTeams'));
+  if (U.list.parentNode !== body) body.replaceChildren(...U.head, U.list);
+  const q = norm(S.teamFilter);
+  const all = [...S.teams.values()].sort((a, b) => (b.held || 0) - (a.held || 0) || (b.v24 || 0) - (a.v24 || 0) || (b.members || 0) - (a.members || 0));
+  const list = q ? all.filter((x) => norm(x.name).includes(q)) : all;
+  const items = [];
+  if (!list.length) items.push(h('li', { class: 'empty', style: 'display:block' }, t('noTeams')));
+  list.slice(0, 80).forEach((x) => items.push(
+    h('li', { class: 'click' + (S.me && S.me.team && S.me.team.id === x.id ? ' me' : ''), onclick: () => openTeam(x.id) },
+      h('span', { class: 'rk num' }, all.indexOf(x) + 1), dot(x.color),
+      h('span', { class: 'nm' }, x.name, ' ', h('small', null, x.owner ? '👑 ' + x.owner : '')),
+      h('span', { class: 'v num' }, t('holds', { c: x.held || 0 }), h('small', null, t('members', { m: x.members || 0 }), ' · ', compact(x.v24 || 0), '/24h')))));
+  U.list.replaceChildren(...items);
+}
+function renderTeamView(body) {
+  const id = S.teamView;
+  const base = team(id) || {};
+  const d = S.teamDetail;
+  const color = (d && d.color) || base.color || '#8ea4ba';
+  const name = (d && d.name) || base.name || '…';
+  const owns = !!(S.me && (S.me.owns || []).includes(id));
+  const member = !!(S.me && S.me.team && S.me.team.id === id);
+  const held = [...S.prov.values()].filter((r) => r.t === id).sort((a, b) => b.p - a.p);
+  const parts = [
+    h('button', { type: 'button', class: 'back', onclick: () => { S.teamView = null; setHash(''); renderTeams(); } }, t('allTeams')),
+    h('div', { class: 'c-head' }, h('span', { class: 'badge', style: `background:${color}` }),
+      h('div', { style: 'min-width:0' }, h('h2', null, name),
+        h('div', { class: 'c-sub' }, t('holds', { c: held.length || base.held || 0 }), ' · ', t('members', { m: d ? d.members : (base.members || 0) }))))
+  ];
+  parts.push(statGrid([[fmt(held.length || base.held || 0), t('sHeld')], [fmt(d ? d.members : base.members || 0), t('sMembers')],
+    [compact(d ? d.pts : base.pts || 0), t('sPts')], [compact(d ? d.v24 : base.v24 || 0), t('sV24')],
+    [fmt(base.seats || (d ? d.seats.length : 0)), t('sSeats')], [fmt(d ? d.sales : base.sales || 0), t('sSales')]]));
+  if (!d) parts.push(h('p', { class: 'empty' }, t('loading')));
+  else {
+    const crown = h('div', { class: 'card' }, crownEl());
+    crown.append(h('div', null, h('small', null, t('owner')),
+      d.owner ? h('button', { type: 'button', class: 'linkish', onclick: () => openProfile(d.owner) }, h('b', null, d.owner)) : h('b', null, '—'),
+      h('small', null, t('founder'), ': ', d.founder || '—', ' · ', d.sales ? (d.sales === 1 ? t('sold1') : t('sold', { s: d.sales })) : t('soldNone'))));
+    parts.push(crown);
+    const acts = h('div', { class: 'actions' });
+    if (owns) acts.append(h('button', { type: 'button', class: 'cta', onclick: () => openEdit(id, name, color) }, t('edit')));
+    else {
+      if (!member) acts.append(h('button', { type: 'button', class: 'cta ghost', onclick: () => joinTeam(id) }, t('joinTeam')));
+      acts.append(h('button', { type: 'button', class: 'cta', disabled: !S.checkout, onclick: () => openBuy(id, name, color) },
+        S.checkout ? t('buy', { price: money(S.price) }) : t('salesSoon')));
+    }
+    acts.append(h('button', { type: 'button', class: 'cta ghost', onclick: () => share('t', id, t('shareTeam', { t: name })) }, t('share')));
+    parts.push(acts);
+    if (owns) parts.push(h('p', { class: 'empty' }, t('youOwn')));
+    else if (member) parts.push(h('p', { class: 'empty' }, t('yourTeamNow')));
+    parts.push(h('div', { class: 'eyebrow' }, t('teamProvs'), h('small', null, fmt(held.length))));
+    if (!held.length) parts.push(h('p', { class: 'empty' }, t('noneYet')));
+    else parts.push(h('ul', { class: 'list flat' }, held.slice(0, 15).map((r) =>
+      h('li', { class: 'click', onclick: () => goToProvince(r.i, r.c) }, h('span', { class: 'flag' }, flag(r.c)),
+        h('span', { class: 'nm' }, provName(r.i), r.gc ? ' ♛' : '', ' ', isHot(r) ? h('small', { style: 'color:var(--bad)' }, t('hotPill')) : null),
+        h('span', { class: 'v num' }, t('pts', { p: r.p }))))));
+    parts.push(h('div', { class: 'eyebrow' }, t('teamChairs'), h('small', null, fmt(d.seats.length))));
+    if (!d.seats.length) parts.push(h('p', { class: 'empty' }, t('noneYet')));
+    else parts.push(h('ul', { class: 'list' }, d.seats.map((s, i) =>
+      h('li', { class: 'click', onclick: () => goToProvince(s.i, s.c) }, h('span', { class: 'rk num' }, i + 1), h('span', { class: 'flag' }, flag(s.c)),
+        h('span', { class: 'nm' }, provName(s.i) || s.pn, ' ', h('small', null, '♛ ' + s.n)), h('span', { class: 'v num' }, money(s.price))))));
+    if (d.top && d.top.length) {
+      parts.push(h('div', { class: 'eyebrow' }, t('topMembers')));
+      parts.push(h('ul', { class: 'list' }, d.top.map((m, i) =>
+        h('li', { class: 'click' + (S.me && S.me.nickname === m.n ? ' me' : ''), onclick: () => openProfile(m.n) },
+          h('span', { class: 'rk num' }, i + 1), dot(color), h('span', { class: 'nm' }, m.n, m.n === d.owner ? ' \u{1F451}' : ''),
+          h('span', { class: 'v num' }, t('pts', { p: m.p }))))));
+    }
+  }
+  body.replaceChildren(...parts);
+}
+async function joinTeam(id) {
+  if (!S.me) return openJoin();
+  try {
+    const me = await rpc('pw_team_join', { p_secret: S.secret, p_team: id });
+    setMe(me);
+    toast(t('joinedToast', { t: me.team ? me.team.name : '' }));
+    refresh();
+    if (S.teamView === id) openTeam(id);
+  } catch (e) { toast(errText(e), true); }
+}
+function norm(s) {
+  return (s || '').toLocaleLowerCase(S.lang).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ı/g, 'i');
+}
+
+/* ---------- Rankings tab ---------- */
+function renderRank() {
+  const body = $('rankBody');
+  const seg = h('div', { class: 'seg', role: 'group' }, [['teams', 'rTeams'], ['players', 'rPlayers'], ['chairs', 'rChairs'], ['countries', 'rCountries']].map(([m, k]) =>
+    h('button', { type: 'button', 'aria-pressed': S.rankMode === m ? 'true' : 'false', onclick: () => { S.rankMode = m; renderRank(); if (m === 'chairs') loadChairs(); } }, t(k))));
+  const parts = [seg];
+  if (S.rankMode === 'teams') {
+    const painted = Math.max(1, S.prov.size);
+    const list = [...S.teams.values()].filter((x) => x.held || x.pts).sort((a, b) => (b.held || 0) - (a.held || 0) || (b.pts || 0) - (a.pts || 0));
+    parts.push(h('h3', { class: 'sec' }, t('rTeams')));
+    if (!list.length) parts.push(h('p', { class: 'empty' }, t('noTeams')));
+    else parts.push(h('ul', { class: 'list' }, list.slice(0, 50).map((x, i) =>
+      h('li', { class: 'click' + (S.me && S.me.team && S.me.team.id === x.id ? ' me' : ''), onclick: () => openTeam(x.id) },
+        h('span', { class: 'rk num' }, i + 1), dot(x.color), h('span', { class: 'nm' }, x.name, ' ', h('small', null, t('members', { m: x.members || 0 }))),
+        h('span', { class: 'v num' }, t('holds', { c: x.held || 0 }), h('small', null, t('share_', { s: Math.round(((x.held || 0) / painted) * 100) }), ' · ', compact(x.pts || 0)))))));
+  } else if (S.rankMode === 'players') {
+    parts.push(h('h3', { class: 'sec' }, t('playersTop')));
+    if (!S.top.length) parts.push(h('p', { class: 'empty' }, t('noPlayers')));
+    else parts.push(h('ul', { class: 'list' }, S.top.map((x, i) =>
+      h('li', { class: 'click' + (S.me && S.me.nickname === x.n ? ' me' : ''), onclick: () => openProfile(x.n) },
+        h('span', { class: 'rk num' }, i + 1), lvlBadge(x.x || 0, 'sm'),
+        h('span', { class: 'nm' }, x.n, ' ', h('small', null, dot(teamColor(x.t), 8), ' ', teamName(x.t), ' · ', titleOf(levelOf(x.x || 0)))),
+        h('span', { class: 'v num' }, t('pts', { p: x.p }))))));
+  } else if (S.rankMode === 'chairs') {
+    const c = S.chairData;
+    if (!c) parts.push(h('p', { class: 'empty' }, t('loading')));
+    else if (!c.list.length) parts.push(h('p', { class: 'empty' }, t('noChairs', { base: money(S.seatBase) })));
+    else {
+      parts.push(h('h3', { class: 'sec' }, t('topSeats')));
+      parts.push(h('ul', { class: 'list' }, c.list.slice(0, 30).map((s, i) =>
+        h('li', { class: 'click', onclick: () => goToProvince(s.i, s.c) }, h('span', { class: 'rk num' }, i + 1), dot(teamColor(s.t)),
+          h('span', { class: 'nm' }, flag(s.c), ' ', s.pn || provName(s.i), ' ', h('small', null, '♛ ', s.n, ' · ', teamName(s.t))),
+          h('span', { class: 'v num' }, money(s.price))))));
+      parts.push(h('h3', { class: 'sec' }, t('topHolders')));
+      parts.push(h('ul', { class: 'list' }, c.holders.map((s, i) =>
+        h('li', { class: 'click' + (S.me && S.me.nickname === s.n ? ' me' : ''), onclick: () => openProfile(s.n) }, h('span', { class: 'rk num' }, i + 1), dot(teamColor(s.t)),
+          h('span', { class: 'nm' }, s.n, ' ', h('small', null, teamName(s.t))),
+          h('span', { class: 'v num' }, t('seatsN', { c: s.c }), h('small', null, money(s.s)))))));
+    }
+  } else {
+    const sum = [...countrySummary().entries()].sort((a, b) => b[1].painted - a[1].painted || b[1].frac - a[1].frac);
+    parts.push(h('h3', { class: 'sec' }, t('countriesRank')));
+    if (!sum.length) parts.push(h('p', { class: 'empty' }, t('noCountries')));
+    else parts.push(h('ul', { class: 'list' }, sum.slice(0, 60).map(([c, s], i) =>
+      h('li', { class: 'click', onclick: () => focusCountry(c, true) }, h('span', { class: 'rk num' }, i + 1), h('span', { class: 'flag' }, flag(c)),
+        h('span', { class: 'nm' }, cname(c), ' ', h('small', null, dot(teamColor(s.t), 8), ' ', teamName(s.t))),
+        h('span', { class: 'v num' }, `${s.painted}/${s.total}`)))));
+  }
+  body.replaceChildren(...parts);
+}
+async function loadChairs(force) {
+  if (!force && S.chairData && Date.now() - S.chairAt < 30000) return;
+  try {
+    S.chairData = await rpc('pw_chairs');
+    S.chairAt = Date.now();
+    for (const s of S.chairData.list || []) if (s.pn) provNames.set(s.i, s.pn);
+    renderRank();
+  } catch (_) {}
+}
+
+/* ---------- Live tab ---------- */
+function feedLine(f) {
+  if (f.k === 'v') {
+    const rallyIt = f.a > 1;
+    return h('li', { class: 'click', onclick: () => goToProvince(f.i, f.c) }, dot(teamColor(f.t)),
+      h('span', { class: 'nm' }, h('b', null, f.n), ' → ', flag(f.c), ' ', f.pn || cname(f.c), ' ',
+        rallyIt ? h('span', { style: 'color:var(--signal);font-weight:600' }, `⚡ +${f.a}`) : null, ' ', h('small', null, teamName(f.t))),
+      h('span', { class: 'v' }, ago(f.at)));
+  }
+  if (f.k === 'seat') {
+    return h('li', { class: 'click', onclick: () => goToProvince(f.i, f.c) }, dot(teamColor(f.t)),
+      h('span', { class: 'nm' }, h('span', { style: 'color:var(--signal)' }, '♛ '), t('fSeat', { n: f.n || '?', p: `${flag(f.c)} ${f.pn || ''}` }), ' ', h('small', null, money(f.a || 0))),
+      h('span', { class: 'v' }, ago(f.at)));
+  }
+  const line = f.k === 'sold' ? t('fSold', { n: f.n || '?', t: teamName(f.t) }) : t('fCreated', { n: f.n || '?', t: teamName(f.t) });
+  return h('li', { class: 'click', onclick: () => openTeam(f.t) }, dot(teamColor(f.t)), h('span', { class: 'nm' }, f.k === 'sold' ? '\u{1F451} ' : '', line), h('span', { class: 'v' }, ago(f.at)));
+}
+function renderLive() {
+  const body = $('liveBody');
+  const parts = [statGrid([[compact(S.players), t('players')], [compact(S.votesHour), t('votesHour')], [compact(S.votes24), t('votes24')], [compact(S.teamsTotal), t('teamsShort')]], true)];
+  const ul = h('ul', { class: 'list feed' });
+  if (!S.feed.length) ul.append(h('li', { class: 'empty', style: 'display:block' }, t('noFeed')));
+  else S.feed.forEach((f) => ul.append(feedLine(f)));
+  parts.push(ul);
+  body.replaceChildren(...parts);
+}
+
+/* ---------- Profile tab ---------- */
+function openProfile(nick) {
+  if (!nick) return;
+  S.profileView = nick;
+  S.profileData = null;
+  showTab('me');
+  setHash('u=' + encodeURIComponent(nick));
+  renderMe();
+  rpc('pw_profile', { p_nick: nick }).then((p) => {
+    if (S.profileView !== nick) return;
+    S.profileData = p || { missing: true };
+    if (p && S.me && p.nickname === S.me.nickname) S.myProfile = p;
+    renderMe();
+  }).catch(() => {});
+}
+function loadMyProfile() {
+  if (!S.me) return;
+  const nick = S.me.nickname;
+  rpc('pw_profile', { p_nick: nick }).then((p) => { if (S.me && S.me.nickname === nick) { S.myProfile = p; if (S.tab === 'me') renderMe(); } }).catch(() => {});
+}
+function xpBlock(xp) {
+  const l = levelOf(xp);
+  const a = xp - totalXpFor(l), b = totalXpFor(l + 1) - totalXpFor(l);
+  return h('div', { class: 'xp' },
+    h('div', { class: 'xp-track' }, h('div', { class: 'xp-fill', style: `width:${Math.max(2, Math.min(100, (a / b) * 100))}%` })),
+    h('small', null, h('span', null, t('xpTo', { a: fmt(a), b: fmt(b), l: l + 1 })), h('span', null, t('xpTotal', { x: fmt(xp) }))));
+}
+function profileBody(p, own) {
+  const parts = [];
+  const xp = own && S.me ? S.me.xp || p.xp || 0 : p.xp || 0;
+  const l = levelOf(xp);
+  parts.push(h('div', { class: 'c-head' }, lvlBadge(xp, 'lg'),
+    h('div', { style: 'min-width:0' }, h('h2', null, p.nickname),
+      h('div', { class: 'c-sub' }, h('b', { style: `color:${tierOf(l).c}` }, t('lv', { l }), ' · ', titleOf(l)),
+        p.team ? [' · ', dot(p.team.color), h('button', { type: 'button', class: 'linkish', onclick: () => openTeam(p.team.id) }, p.team.name)] : null))));
+  parts.push(xpBlock(xp));
+  parts.push(statGrid([[fmt(p.votes || 0), t('pVotes')], [fmt(p.rallies || 0), t('pRallies')], [fmt((p.seats || []).length), t('pSeats')], [fmt(p.countries || 0), t('pCountries')]], true));
+  if (p.joined) parts.push(h('p', { class: 'note' }, t('joinedOn', { d: dateStr(p.joined) })));
+  parts.push(h('div', { class: 'eyebrow' }, t('mySeats'), h('small', null, fmt((p.seats || []).length))));
+  if (!(p.seats || []).length) parts.push(h('p', { class: 'empty' }, t('noneYet')));
+  else parts.push(h('ul', { class: 'list' }, p.seats.map((s, i) =>
+    h('li', { class: 'click', onclick: () => goToProvince(s.i, s.c) }, h('span', { class: 'rk num' }, i + 1), dot(teamColor(s.t)),
+      h('span', { class: 'nm' }, flag(s.c), ' ', s.pn, ' ', h('small', null, t('since', { d: dur(s.since) }))), h('span', { class: 'v num' }, money(s.price))))));
+  if ((p.owns || []).length) {
+    parts.push(h('div', { class: 'eyebrow' }, t('myTeams')));
+    parts.push(h('ul', { class: 'list flat' }, p.owns.map((x) =>
+      h('li', { class: 'click', onclick: () => openTeam(x.id) }, dot(x.color), h('span', { class: 'nm' }, x.name, ' 👑'), h('span', { class: 'v num' }, t('holds', { c: (team(x.id) || {}).held || 0 }))))));
+  }
+  if ((p.fav || []).length) {
+    parts.push(h('div', { class: 'eyebrow' }, t('favs')));
+    parts.push(h('ul', { class: 'list flat' }, p.fav.map((x) =>
+      h('li', { class: 'click', onclick: () => goToProvince(x.i, x.c) }, h('span', { class: 'flag' }, flag(x.c)), h('span', { class: 'nm' }, x.pn), h('span', { class: 'v num' }, t('pts', { p: x.p }))))));
+  }
+  return parts;
+}
+function renderMe() {
+  const body = $('meBody');
+  const parts = [];
+  const viewingOther = S.profileView && !(S.me && S.profileView.toLowerCase() === S.me.nickname.toLowerCase());
+  if (viewingOther) {
+    parts.push(h('button', { type: 'button', class: 'back', onclick: () => { S.profileView = null; setHash(''); renderMe(); } }, t('back')));
+    const p = S.profileData;
+    if (!p) parts.push(h('p', { class: 'empty' }, t('loading')));
+    else if (p.missing) parts.push(h('p', { class: 'empty' }, t('profileMissing')));
+    else parts.push(...profileBody(p, false));
+    body.replaceChildren(...parts);
+    return;
+  }
+  if (!S.me) {
+    parts.push(h('div', { class: 'card' }, h('div', null, h('b', null, t('meGuest')), h('small', null, t('meGuestSub')))));
+    parts.push(h('div', { class: 'actions' },
+      h('button', { type: 'button', class: 'cta', onclick: openJoin }, t('play')),
+      h('button', { type: 'button', class: 'cta ghost', onclick: openRestore }, t('useCode'))));
+    body.replaceChildren(...parts);
+    return;
+  }
+  const p = Object.assign({ nickname: S.me.nickname, team: S.me.team, xp: S.me.xp, votes: S.me.votes, seats: [], owns: [], fav: [], joined: S.me.joined }, S.myProfile || {});
+  if (S.me.team) p.team = { id: S.me.team.id, name: S.me.team.name, color: S.me.team.color };
+  parts.push(...profileBody(p, true));
+  if (S.me.team) {
+    const ready = canRally();
+    parts.splice(3, 0, h('div', { class: 'card' }, h('span', { style: 'font-size:20px' }, '⚡'),
+      h('div', null, h('b', null, ready ? t('rallyReady', { n: S.rallyPts }) : t('rallyIn', { t: untilText(S.me.rally_at) })),
+        h('small', null, t('rallyHow')))));
+  }
+  const code = S.secret || '';
+  const grouped = code.match(/.{1,8}/g) ? code.match(/.{1,8}/g).join(' ') : code;
+  parts.push(h('h3', { class: 'sec' }, t('account')));
+  parts.push(h('div', { class: 'acct' },
+    h('div', { class: 'eyebrow' }, t('codeLabel')),
+    h('div', { class: 'codebox' + (S.showCode ? '' : ' masked'), id: 'codeBox' }, S.showCode ? grouped : '•••••••• •••••••• ••••••••'),
+    h('div', { class: 'actions' },
+      h('button', { type: 'button', class: 'cta ghost small', onclick: () => { S.showCode = !S.showCode; renderMe(); } }, S.showCode ? t('hide') : t('show')),
+      h('button', { type: 'button', class: 'cta small', onclick: copyCode }, t('copy'))),
+    h('p', { class: 'note' }, t('codeNote')),
+    h('div', { class: 'actions' },
+      h('button', { type: 'button', class: 'cta ghost small', onclick: openRestore }, t('switchAcct')),
+      h('button', { type: 'button', class: 'cta ghost small', style: 'color:var(--bad)', onclick: () => showDlg($('logoutDlg')) }, t('signOut')))));
+  parts.push(h('div', { class: 'actions' }, h('button', { type: 'button', class: 'cta ghost', onclick: () => share('u', S.me.nickname, t('shareMe', { n: S.me.nickname })) }, t('share'))));
+  body.replaceChildren(...parts);
+}
+async function copyCode() {
+  try { await navigator.clipboard.writeText(S.secret || ''); toast(t('copied')); }
+  catch (_) { S.showCode = true; renderMe(); }
+}
+
+/* ---------- dock & clock ---------- */
+function now() { return Date.now() + S.offset; }
+function fmtLeft(ms) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+function canVote() {
+  if (!S.me) return false;
+  if (S.me.can_vote) return true;
+  return now() >= new Date(S.me.next_vote_at).getTime();
+}
+function renderDock() {
+  const who = $('dockWho'), st = $('dockState'), cta = $('cta'), dock = $('dock');
+  cta.disabled = false;
+  st.className = 'dock-state';
+  if (!S.me) {
+    dock.style.removeProperty('--team');
+    who.replaceChildren(h('span', null, t('guest')));
+    st.textContent = t('guestState');
+    cta.textContent = t('play');
+    cta.onclick = () => openJoin();
+    return;
+  }
+  if (!S.me.team) {
+    dock.style.removeProperty('--team');
+    who.replaceChildren(lvlBadge(S.me.xp || 0, 'sm'), h('b', null, S.me.nickname));
+    st.textContent = t('noTeamState');
+    cta.textContent = t('pickTeam');
+    cta.onclick = () => openTeamDlg('join');
+    return;
+  }
+  const tm = team(S.me.team.id) || S.me.team;
+  dock.style.setProperty('--team', tm.color);
+  who.replaceChildren(lvlBadge(S.me.xp || 0, 'sm'), h('b', null, S.me.nickname), (S.me.owns || []).includes(S.me.team.id) ? '\u{1F451}' : null, h('span', { class: 'tn' }, '· ' + tm.name));
+  if (canVote()) {
+    st.className = 'dock-state ready';
+    if (S.sel) {
+      st.textContent = t('readySel', { p: provName(S.sel) });
+      const held = S.prov.get(S.sel) && S.prov.get(S.sel).t === S.me.team.id;
+      cta.textContent = held ? t('defend') : t('vote');
+      cta.disabled = S.busy;
+      cta.onclick = () => vote(S.sel);
+    } else {
+      st.textContent = t('ready');
+      cta.textContent = t('pickProv');
+      cta.disabled = true;
+    }
+  } else {
+    st.replaceChildren(t('nextPre'), h('span', { class: 'num' }, fmtLeft(new Date(S.me.next_vote_at).getTime() - now())), t('nextPost'));
+    cta.textContent = t('voted');
+    cta.disabled = true;
+  }
+}
+function renderClock() {
+  const el = $('clockBtn');
+  const ready = S.me && S.me.team && canVote();
+  el.classList.toggle('ready', !!ready);
+  if (ready) { el.textContent = t('clockReady'); return; }
+  const n = now();
+  const next = Math.ceil((n + 1) / 3600000) * 3600000;
+  el.innerHTML = '<svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.2V8l2.6 1.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  el.append(fmtLeft(next - n));
+}
+$('clockBtn').addEventListener('click', () => {
+  if (S.me && S.me.team && canVote()) { if (S.sel) vote(S.sel); else toast(t('pickProv')); }
+  else if (!S.me) openJoin();
+  else toast(t('clockNext'));
+});
+let lastMinute = -1;
+function tick() {
+  if (S.me && S.me.team && !S.me.can_vote && canVote()) { S.me.can_vote = true; renderProv(); }
+  if (S.me && S.me.team && !S.me.can_rally && canRally()) { S.me.can_rally = true; renderProv(); }
+  if (S.rallyArm && Date.now() - S.rallyArm.at > 4000) { S.rallyArm = null; if (S.sel) renderProv(); }
+  renderDock();
+  renderClock();
+  const m = Math.floor(now() / 60000);
+  if (m !== lastMinute) { lastMinute = m; if (S.tab === 'me') renderMe(); }
+}
+async function vote(id) {
+  if (!S.me) return openJoin();
+  if (!S.me.team) return openTeamDlg('join');
+  if (S.busy) return;
+  S.busy = true;
+  renderDock();
+  try {
+    const me = await rpc('pw_vote', { p_secret: S.secret, p_target: id });
+    setMe(me);
+    toast(t('toastVote', { p: provName(id), t: me.team ? me.team.name : '' }) + ' · +1 XP');
+    await refresh();
+  } catch (e) {
+    toast(errText(e), true);
+    if (e.code === 'cooldown' && S.me) S.me.can_vote = false;
+    if (e.code === 'not_joined') signOutLocal();
+  } finally {
+    S.busy = false;
+    renderDock();
+  }
+}
+async function rally(id) {
+  if (!S.me) return openJoin();
+  if (!S.me.team) return openTeamDlg('join');
+  if (!S.rallyArm || S.rallyArm.id !== id || Date.now() - S.rallyArm.at > 4000) {
+    S.rallyArm = { id, at: Date.now() };
+    renderProv();
+    return;
+  }
+  S.rallyArm = null;
+  if (S.busy) return;
+  S.busy = true;
+  try {
+    const me = await rpc('pw_rally', { p_secret: S.secret, p_target: id });
+    setMe(me);
+    toast(t('rallyToast', { p: provName(id), n: S.rallyPts, t: me.team ? me.team.name : '' }));
+    await refresh();
+  } catch (e) {
+    toast(errText(e), true);
+    if (e.code === 'rally_cooldown' && S.me) S.me.can_rally = false;
+  } finally {
+    S.busy = false;
+    renderProv();
+  }
+}
+
+/* ---------- world bar & ticker ---------- */
+function renderWorld() {
+  const el = $('wbar');
+  const counts = new Map();
+  for (const r of S.prov.values()) counts.set(r.t, (counts.get(r.t) || 0) + 1);
+  const painted = S.prov.size;
+  const head = h('div', { class: 'wbar-head' }, h('div', { class: 'eyebrow', id: 'wbarTitle' }, t('worldTitle')),
+    h('small', { class: 'muted' }, t('worldSub', { x: fmt(painted), n: fmt(S.provTotal || 0) })));
+  if (!painted) { el.replaceChildren(head, h('div', { class: 'wbar-track' }), h('small', { class: 'muted' }, t('worldEmpty'))); return; }
+  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const shown = sorted.slice(0, 7);
+  const rest = sorted.slice(7).reduce((s, x) => s + x[1], 0);
+  const track = h('div', { class: 'wbar-track', role: 'img', 'aria-label': shown.map(([tid, n]) => `${teamName(tid)} ${n}`).join(', ') },
+    shown.map(([tid, n]) => h('span', { style: `width:${(n / painted) * 100}%;background:${teamColor(tid)}`, title: `${teamName(tid)} · ${n}` })),
+    rest ? h('span', { style: `width:${(rest / painted) * 100}%;background:var(--faint)` }) : null);
+  const leg = h('div', { class: 'wbar-leg' }, shown.slice(0, 4).map(([tid, n]) =>
+    h('button', { type: 'button', onclick: () => openTeam(tid) }, dot(teamColor(tid), 10), h('span', null, teamName(tid)), h('b', { class: 'num' }, Math.round((n / painted) * 100) + '%'))),
+    rest ? h('span', null, t('others'), ' ', Math.round((rest / painted) * 100) + '%') : null);
+  el.replaceChildren(head, track, leg);
+}
+let tickerSig = '';
+function renderTicker() {
+  const items = [];
+  for (const c of S.chairs.slice(0, 6)) items.push(['seat', c]);
+  for (const f of S.feed) {
+    if (items.length >= 14) break;
+    if (f.k === 'seat') continue;
+    if (f.k === 'v' && f.a > 1) items.push(['rally', f]);
+    else if (f.k === 'sold') items.push(['sold', f]);
+  }
+  for (const f of S.feed) { if (items.length >= 14) break; if (f.k === 'v' && !(f.a > 1)) items.push(['vote', f]); }
+  const sig = S.lang + items.map(([k, f]) => k + f.n + f.at).join('|');
+  if (sig === tickerSig) return;
+  tickerSig = sig;
+  const track = $('tickerTrack');
+  const mk = ([k, f]) => {
+    if (k === 'seat') return h('span', null, h('span', { class: 'gold' }, '♛'), h('b', null, f.n), flag(f.c), f.pn || '', h('span', { class: 'gold' }, money(f.a || 0)));
+    if (k === 'rally') return h('span', null, h('span', { class: 'gold' }, '⚡'), h('b', null, f.n), '→', flag(f.c), f.pn || '', h('span', { class: 'gold' }, '+' + f.a));
+    if (k === 'sold') return h('span', null, '👑', h('b', null, f.n), teamName(f.t));
+    return h('span', null, dot(teamColor(f.t), 8), h('b', null, f.n), '→', flag(f.c), f.pn || '');
+  };
+  if (!items.length) { track.replaceChildren(h('span', null, t('taglineSub'))); track.style.animation = 'none'; return; }
+  const nodes = items.map(mk);
+  track.replaceChildren(...nodes, ...items.map(mk));
+  track.style.animation = 'none';
+  requestAnimationFrame(() => {
+    const w = track.scrollWidth / 2;
+    track.style.setProperty('--tick-dur', Math.max(20, w / 45) + 's');
+    track.style.animation = '';
+  });
+}
+function renderContact() {
+  const el = $('contactLine');
+  el.hidden = !S.contact;
+  el.textContent = S.contact ? t('contact', { c: S.contact }) : '';
+}
+
+/* ---------- dialogs ---------- */
+function showDlg(d) { if (d.showModal) { if (!d.open) d.showModal(); } else d.setAttribute('open', ''); }
+for (const b of document.querySelectorAll('[data-close]')) b.addEventListener('click', () => b.closest('dialog').close());
+function setErr(id, msg) { const el = $(id); el.textContent = msg || ''; el.hidden = !msg; }
+
+function openJoin() {
+  setErr('joinErr');
+  showDlg($('joinDlg'));
+  setTimeout(() => $('nickInput').focus(), 50);
+}
+$('joinForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const nick = $('nickInput').value.trim();
+  setErr('joinErr');
+  if (!/^[\p{L}\p{N}_.]{3,20}$/u.test(nick)) return setErr('joinErr', errText({ code: 'bad_nickname' }));
+  const secret = S.secret || newSecret();
+  const btn = $('joinGo');
+  btn.disabled = true;
+  try {
+    const me = await rpc('pw_player', { p_secret: secret, p_nickname: nick });
+    S.secret = secret;
+    store.set('ptw2_secret', secret);
+    $('joinDlg').close();
+    setMe(me, true);
+    loadMyProfile();
+    if (!me.team) openTeamDlg('join');
+  } catch (e) { setErr('joinErr', errText(e)); }
+  finally { btn.disabled = false; }
+});
+$('toRestore').addEventListener('click', () => { $('joinDlg').close(); openRestore(); });
+
+function openRestore() {
+  setErr('restoreErr');
+  $('codeInput').value = '';
+  showDlg($('restoreDlg'));
+  setTimeout(() => $('codeInput').focus(), 50);
+}
+$('restoreForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const code = $('codeInput').value.replace(/[\s-]/g, '').toLowerCase();
+  setErr('restoreErr');
+  if (code.length < 32 || code.length > 128) return setErr('restoreErr', t('badCode'));
+  const btn = $('restoreGo');
+  btn.disabled = true;
+  try {
+    const me = await rpc('pw_me', { p_secret: code });
+    if (!me) return setErr('restoreErr', t('badCode'));
+    S.secret = code;
+    store.set('ptw2_secret', code);
+    S.showCode = false;
+    S.profileView = null;
+    $('restoreDlg').close();
+    setMe(me, true);
+    loadMyProfile();
+    toast(t('welcomeBack', { n: me.nickname }));
+    refresh();
+  } catch (e) { setErr('restoreErr', errText(e)); }
+  finally { btn.disabled = false; }
+});
+function signOutLocal() {
+  store.del('ptw2_secret');
+  store.del('ptw2_purchase');
+  S.secret = null;
+  S.showCode = false;
+  setMe(null);
+}
+$('logoutGo').addEventListener('click', () => { $('logoutDlg').close(); signOutLocal(); toast(t('signedOut')); });
+
+let teamMode = 'join', pickColor = PALETTE[0], editColor = PALETTE[0], teamQ = 0;
+function drawPalette(el, current, onPick) {
+  el.replaceChildren(...PALETTE.map((c) => h('button', {
+    type: 'button', role: 'radio', 'aria-checked': c === current ? 'true' : 'false', 'aria-label': c,
+    style: `background:${c}`, onclick: () => { onPick(c); drawPalette(el, c, onPick); }
+  })));
+}
+function openTeamDlg(mode) {
+  if (!S.me) return openJoin();
+  teamMode = mode || 'join';
+  setErr('teamErr');
+  $('teamSearch').value = '';
+  pickColor = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+  drawPalette($('palette'), pickColor, (c) => { pickColor = c; });
+  setTeamMode(teamMode);
+  showDlg($('teamDlg'));
+}
+function setTeamMode(m) {
+  teamMode = m;
+  $('segJoin').setAttribute('aria-pressed', m === 'join' ? 'true' : 'false');
+  $('segNew').setAttribute('aria-pressed', m === 'new' ? 'true' : 'false');
+  $('joinPane').hidden = m !== 'join';
+  $('newPane').hidden = m !== 'new';
+  $('teamGo').hidden = m !== 'new';
+  setErr('teamErr');
+  if (m === 'join') loadTeamList();
+  else setTimeout(() => $('teamName').focus(), 50);
+}
+$('segJoin').addEventListener('click', () => setTeamMode('join'));
+$('segNew').addEventListener('click', () => setTeamMode('new'));
+async function loadTeamList() {
+  const q = $('teamSearch').value.trim();
+  const my = ++teamQ;
+  const box = $('teamList');
+  try {
+    const list = await rpc('pw_teams', { p_q: q });
+    if (my !== teamQ) return;
+    if (!list.length) { box.replaceChildren(h('p', { class: 'empty', style: 'padding:12px' }, t('noTeamsYet'))); return; }
+    box.replaceChildren(...list.map((x) => h('button', {
+      type: 'button', class: 'opt',
+      onclick: async () => {
+        try {
+          const me = await rpc('pw_team_join', { p_secret: S.secret, p_team: x.id });
+          $('teamDlg').close();
+          setMe(me);
+          toast(t('joinedToast', { t: x.name }));
+          refresh();
+        } catch (e) { setErr('teamErr', errText(e)); }
+      }
+    }, dot(x.color, 14), h('span', null, x.name), h('small', null, t('members', { m: x.members })))));
+  } catch (e) { box.replaceChildren(h('p', { class: 'err', style: 'padding:12px' }, errText(e))); }
+}
+let teamSearchT = null;
+$('teamSearch').addEventListener('input', () => { clearTimeout(teamSearchT); teamSearchT = setTimeout(loadTeamList, 250); });
+$('teamForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  if (teamMode !== 'new') return;
+  const name = $('teamName').value.trim().replace(/\s+/g, ' ');
+  if (name.length < 3 || name.length > 24) return setErr('teamErr', errText({ code: 'bad_team_name' }));
+  const btn = $('teamGo');
+  btn.disabled = true;
+  try {
+    const me = await rpc('pw_team_create', { p_secret: S.secret, p_name: name, p_color: pickColor });
+    $('teamDlg').close();
+    $('teamName').value = '';
+    setMe(me);
+    toast(t('createdToast', { t: me.team ? me.team.name : name }));
+    refresh();
+  } catch (e) { setErr('teamErr', errText(e)); }
+  finally { btn.disabled = false; }
+});
+
+let buyTarget = null;
+function openBuy(id, name, color) {
+  if (!S.me) return openJoin();
+  buyTarget = id;
+  setErr('buyErr');
+  $('buyTeam').replaceChildren(dot(color, 22), h('div', null, h('b', null, name)));
+  $('buyPrice').textContent = money(S.price);
+  $('buy5').hidden = !(S.me.seats > 0 && S.me.team && S.me.team.id !== id);
+  showDlg($('buyDlg'));
+}
+$('buyForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const btn = $('buyGo');
+  btn.disabled = true;
+  try {
+    const r = await rpc('pw_purchase_start', { p_secret: S.secret, p_team: buyTarget });
+    store.set('ptw2_purchase', r.id);
+    window.location.href = r.url;
+  } catch (e) { setErr('buyErr', errText(e)); btn.disabled = false; }
+});
+
+let seatTarget = null;
+function openSeat(id) {
+  if (!S.me) return openJoin();
+  if (!S.me.team) return openTeamDlg('join');
+  const d = S.detail && S.detail.id === id ? S.detail : null;
+  const mine = d ? (d.seats || []).find((s) => s.t === S.me.team.id) : null;
+  const price = nextSeatPrice(mine);
+  const after = S.seatStep ? price + S.seatStep : S.seatBase;
+  const tm = team(S.me.team.id) || S.me.team;
+  seatTarget = id;
+  setErr('seatErr');
+  $('seatGo').disabled = false;
+  $('seatWhat').replaceChildren(h('span', { class: 'badge' }, fl(provCountry(id))),
+    h('div', null, h('b', null, provName(id)), h('small', null, dot(tm.color, 10), ' ', t('seatOf', { t: tm.name }))));
+  $('seatPrice').textContent = money(price);
+  $('seatNow').textContent = mine ? t('seatNowHeld', { n: mine.n, price: money(mine.price) }) : t('seatNowEmpty');
+  $('seatPerks').replaceChildren(
+    h('li', null, t('seatPerk1', { p: provName(id) })),
+    h('li', null, t('seatPerk2', { xp: S.seatXp })),
+    h('li', null, t(S.seatStep ? 'seatPerk3' : 'seatPerk3flat', { next: money(after) })),
+    h('li', null, t('seatPerk4')));
+  showDlg($('seatDlg'));
+}
+$('seatForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const btn = $('seatGo');
+  btn.disabled = true;
+  try {
+    const r = await rpc('pw_seat_start', { p_secret: S.secret, p_province: seatTarget });
+    store.set('ptw2_purchase', r.id);
+    window.location.href = r.url;
+  } catch (e) { setErr('seatErr', errText(e)); btn.disabled = false; }
+});
+async function checkPurchase() {
+  const id = store.get('ptw2_purchase');
+  if (!id || !S.secret) return;
+  toast(t('checking'));
+  for (let i = 0; i < 40; i++) {
+    try {
+      const r = await rpc('pw_purchase_status', { p_secret: S.secret, p_purchase: id });
+      if (!r) { store.del('ptw2_purchase'); return; }
+      if (r.status === 'paid' || r.status === 'problem') {
+        store.del('ptw2_purchase');
+        const me = await rpc('pw_me', { p_secret: S.secret });
+        setMe(me);
+        loadMyProfile();
+        await refresh();
+        if (r.status === 'problem') { toast(t('problemToast'), true); return; }
+        if (r.kind === 'seat') {
+          if (r.pname) provNames.set(r.province, r.pname);
+          toast(t('seatToast', { p: r.pname || provName(r.province) }));
+          goToProvince(r.province, r.country);
+        } else toast(t('boughtToast', { t: r.team }));
+        return;
+      }
+    } catch (_) {}
+    await new Promise((res) => setTimeout(res, 3000));
+  }
+  toast(t('payPending'));
+}
+
+let editTarget = null;
+function openEdit(id, name, color) {
+  editTarget = id;
+  editColor = color;
+  $('editName').value = name;
+  setErr('editErr');
+  drawPalette($('editPalette'), color, (c) => { editColor = c; });
+  showDlg($('editDlg'));
+}
+$('editForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  try {
+    const me = await rpc('pw_team_update', { p_secret: S.secret, p_team: editTarget, p_name: $('editName').value, p_color: editColor });
+    $('editDlg').close();
+    setMe(me);
+    toast(t('saved'));
+    await refresh();
+    if (S.teamView === editTarget) openTeam(editTarget);
+  } catch (e) { setErr('editErr', errText(e)); }
+});
+
+function levelTable() {
+  const rows = TIERS.map((x) => `<tr><td><span class="lvl sm" style="--c:${x.c}">${x.min}</span> ${x[S.lang] || x.en}</td><td>${(25 * (x.min - 1) * x.min).toLocaleString(S.lang)} XP</td></tr>`).join('');
+  return `<table class="ttable">${rows}</table>`;
+}
+function openDoc(name) {
+  for (const b of document.querySelectorAll('#docSeg button')) b.setAttribute('aria-pressed', b.dataset.doc === name ? 'true' : 'false');
+  const D = T[S.lang].docs;
+  let html = D[name] || '';
+  if (name === 'help') {
+    const take = (S.seatStep ? D.takeover : D.takeoverFlat).replace('{step}', money(S.seatStep)).replace('{base}', money(S.seatBase));
+    html = html.replace('{takeover}', take).replace('{levels}', levelTable());
+  }
+  html = html.replace(/\{rally\}/g, S.rallyPts).replace(/\{base\}/g, money(S.seatBase)).replace(/\{xp\}/g, S.seatXp).replace(/\{price\}/g, money(S.price));
+  $('docBody').innerHTML = html;
+  showDlg($('docDlg'));
+}
+for (const b of document.querySelectorAll('#docSeg button')) b.addEventListener('click', () => openDoc(b.dataset.doc));
+for (const b of document.querySelectorAll('[data-open]')) b.addEventListener('click', () => openDoc(b.dataset.open));
+$('helpBtn').addEventListener('click', () => openDoc('help'));
+
+/* ---------- share & routing ---------- */
+function setHash(v) {
+  try { history.replaceState(null, '', v ? '#' + v : location.pathname + location.search); } catch (_) {}
+}
+async function share(kind, id, text) {
+  const url = location.href.split('#')[0] + '#' + kind + '=' + encodeURIComponent(id);
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Fethet', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  try { await navigator.clipboard.writeText(text + ' ' + url); toast(t('copied')); } catch (_) { toast(url); }
+}
+function route() {
+  const m = /^#(p|t|u|c)=(.+)$/.exec(location.hash || '');
+  if (!m) return;
+  const v = decodeURIComponent(m[2]);
+  if (m[1] === 't') openTeam(v);
+  else if (m[1] === 'u') openProfile(v);
+  else if (m[1] === 'c' && /^[A-Z]{2}$/.test(v)) { if (S.mapReady) focusCountry(v, true); else S.pending = { c: v }; }
+  else if (m[1] === 'p') goToProvince(v, null);
+}
+window.addEventListener('hashchange', route);
+
+/* ---------- find ---------- */
+let findIdx = 0, findSeq = 0, findT = null, findList = [];
+function drawFind() {
+  const box = $('findList');
+  if (!findList.length) { box.hidden = true; return; }
+  box.replaceChildren(...findList.map((x, i) => {
+    const r = S.prov.get(x.id);
+    return h('button', { type: 'button', class: 'opt' + (i === findIdx ? ' active' : ''), onclick: () => pickFind(x) },
+      fl(x.country), h('span', null, x.name || cname(x.country)), h('small', null, cname(x.country)), r ? dot(teamColor(r.t)) : null);
+  }));
+  box.hidden = false;
+}
+function pickFind(x) {
+  $('findInput').value = '';
+  findList = [];
+  drawFind();
+  if (x.name) provNames.set(x.id, x.name);
+  goToProvince(x.id, x.country);
+}
+$('findInput').addEventListener('input', () => {
+  clearTimeout(findT);
+  const q = $('findInput').value.trim();
+  if (q.length < 2) { findList = []; drawFind(); return; }
+  findT = setTimeout(async () => {
+    const my = ++findSeq;
+    try {
+      const list = await rpc('pw_search', { p_q: q });
+      if (my !== findSeq) return;
+      findList = list; findIdx = 0; drawFind();
+    } catch (_) {}
+  }, 220);
+});
+$('findInput').addEventListener('keydown', (ev) => {
+  if (ev.key === 'ArrowDown') { findIdx = Math.min(findIdx + 1, findList.length - 1); drawFind(); ev.preventDefault(); }
+  else if (ev.key === 'ArrowUp') { findIdx = Math.max(findIdx - 1, 0); drawFind(); ev.preventDefault(); }
+  else if (ev.key === 'Enter' && findList[findIdx]) { pickFind(findList[findIdx]); ev.preventDefault(); }
+  else if (ev.key === 'Escape') { findList = []; drawFind(); }
+});
+document.addEventListener('click', (ev) => { if (!ev.target.closest('.search')) $('findList').hidden = true; });
+
+/* ---------- stats ---------- */
+function renderStats() {
+  $('hsPlayers').textContent = compact(S.players);
+  $('hsHour').textContent = compact(S.votesHour);
+  $('hsProv').textContent = compact(S.prov.size);
+  $('hsChairs').textContent = compact(S.seatsTotal);
+}
+function dur(ts) {
+  const m = Math.max(0, Math.floor((now() - new Date(ts).getTime()) / 60000));
+  if (m < 60) return t('uMin', { n: m });
+  if (m < 2880) return t('uHour', { n: Math.floor(m / 60) });
+  return t('uDay', { n: Math.floor(m / 1440) });
+}
+function ago(ts) {
+  const s = (new Date(ts).getTime() - now()) / 1000;
+  try {
+    const rtf = new Intl.RelativeTimeFormat(S.lang, { numeric: 'auto', style: 'short' });
+    if (Math.abs(s) < 60) return rtf.format(Math.round(s), 'second');
+    if (Math.abs(s) < 3600) return rtf.format(Math.round(s / 60), 'minute');
+    if (Math.abs(s) < 86400) return rtf.format(Math.round(s / 3600), 'hour');
+    return rtf.format(Math.round(s / 86400), 'day');
+  } catch (_) { return ''; }
+}
+
+/* ---------- tabs, lang, toast ---------- */
+function showTab(tab) {
+  S.tab = tab;
+  for (const b of document.querySelectorAll('.tabs button')) b.setAttribute('aria-selected', b.dataset.tab === tab ? 'true' : 'false');
+  $('pProv').hidden = tab !== 'prov';
+  $('pTeams').hidden = tab !== 'teams';
+  $('pRank').hidden = tab !== 'rank';
+  $('pLive').hidden = tab !== 'live';
+  $('pMe').hidden = tab !== 'me';
+  if (tab === 'rank' && S.rankMode === 'chairs') loadChairs();
+  if (tab === 'me' && S.me && !S.profileView) loadMyProfile();
+}
+for (const b of document.querySelectorAll('.tabs button')) b.addEventListener('click', () => {
+  const tab = b.dataset.tab;
+  if (tab === 'teams' && S.tab === 'teams') { S.teamView = null; renderTeams(); }
+  if (tab === 'me' && S.profileView) { S.profileView = null; }
+  if (tab === 'prov' && S.tab === 'prov' && !S.sel) { S.country = null; }
+  showTab(tab);
+  if (tab === 'me') renderMe();
+  if (tab === 'prov') renderProv();
+});
+$('brandBtn').addEventListener('click', () => {
+  S.sel = null; S.detail = null; S.country = null;
+  renderSel(); updateHint(); renderDock(); showTab('prov'); renderProv(); setHash('');
+  if (zoom) svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity);
+});
+function applyLang() {
+  document.documentElement.lang = S.lang;
+  for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+  for (const el of document.querySelectorAll('[data-i18n-ph]')) el.placeholder = t(el.dataset.i18nPh);
+  $('langBtn').textContent = S.lang === 'tr' ? 'EN' : 'TR';
+  $('helpBtn').setAttribute('aria-label', t('how'));
+  document.title = S.lang === 'tr' ? 'Fethet — Dünyayı takımının rengine boya' : 'Fethet — Paint the world in your team’s color';
+  tickerSig = '';
+  renderStats(); paint(); renderDock(); renderClock(); renderProv(); renderTeams(); renderRank(); renderLive(); renderMe(); renderWorld(); renderTicker(); renderContact();
+}
+$('langBtn').addEventListener('click', () => {
+  S.lang = S.lang === 'tr' ? 'en' : 'tr';
+  store.set('ptw_lang', S.lang);
+  applyLang();
+});
+let toastTimer = null;
+function toast(msg, bad) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (bad ? ' bad' : '');
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 4200);
+}
+$('zIn').addEventListener('click', () => zoom && svg.transition().duration(250).call(zoom.scaleBy, 1.8));
+$('zOut').addEventListener('click', () => zoom && svg.transition().duration(250).call(zoom.scaleBy, 1 / 1.8));
+$('zHome').addEventListener('click', () => zoom && svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity));
+
+function syncDockHeight() {
+  const dock = $('dock');
+  const fixed = getComputedStyle(dock).position === 'fixed';
+  document.documentElement.style.setProperty('--dock-h', fixed ? dock.offsetHeight + 'px' : '0px');
+}
+let rsT = null;
+window.addEventListener('resize', () => {
+  clearTimeout(rsT);
+  rsT = setTimeout(() => { syncDockHeight(); if (S.mapReady && Math.abs(wrap.getBoundingClientRect().width - W) > 2) layout(false); }, 150);
+});
+
+/* ---------- boot ---------- */
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+async function boot() {
+  const saved = store.get('ptw_lang');
+  S.lang = saved === 'tr' || saved === 'en' ? saved : ((navigator.language || '').toLowerCase().startsWith('tr') ? 'tr' : 'en');
+  S.secret = store.get('ptw2_secret');
+  applyLang();
+  syncDockHeight();
+  rpc('pw_meta').then((m) => {
+    S.pc = m.pc || {};
+    if (m.price_cents) S.price = m.price_cents;
+    if (m.seat_base) S.seatBase = m.seat_base;
+    if (m.seat_step != null) S.seatStep = m.seat_step;
+    S.checkout = !!m.checkout;
+    paint(); renderTeams(); renderProv(); renderRank();
+  }).catch(() => {});
+  if (S.secret) {
+    try {
+      const me = await rpc('pw_me', { p_secret: S.secret });
+      if (me) { setMe(me, true); loadMyProfile(); } else { store.del('ptw2_secret'); S.secret = null; }
+    } catch (_) {}
+  }
+  route();
+  await Promise.all([loadMap(), refresh()]);
+  syncDockHeight();
+  if (S.pending) {
+    const p = S.pending; S.pending = null;
+    if (p.p) goToProvince(p.p, p.c); else if (p.c) focusCountry(p.c, true);
+  }
+  setInterval(() => { if (!document.hidden) refresh(); }, CFG.poll);
+  setInterval(tick, 1000);
+  checkPurchase();
+}
+boot();
+})();

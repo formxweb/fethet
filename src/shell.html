@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fethet</title>
+<meta name="description" content="Start a team, get one vote every hour, and paint the world's provinces in your team's color. Become a province's chair for $1.">
+<meta name="theme-color" content="#06121f">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Fethet">
+<meta property="og:description" content="One vote every hour. Paint every province on Earth in your team's color.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2306121f'/%3E%3Cpath d='M32 32V6a26 26 0 0 1 24.7 18z' fill='%23e8323c'/%3E%3Cpath d='M32 32l24.7-8A26 26 0 0 1 47 53z' fill='%233d6fe3'/%3E%3Cpath d='M32 32l15 21a26 26 0 0 1-30 0z' fill='%23f2b81e'/%3E%3Cpath d='M32 32L17 53A26 26 0 0 1 7.3 24z' fill='%231fae5b'/%3E%3Cpath d='M32 32L7.3 24A26 26 0 0 1 32 6z' fill='%238b5cf6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Noto+Color+Emoji&display=swap">
+<style>
+/* Layout: full-bleed night-sea map; ballot dock + tabbed panel on the right (desktop) or under the map with the dock pinned to the bottom (phone) */
+:root {
+  --sea: #06121f;
+  --sea-2: #0a1d30;
+  --grat: #11304b;
+  --land: #26384c;
+  --land-open: #31475f;
+  --edge: #06121f;
+  --ink: #e9f0f7;
+  --muted: #8ea4ba;
+  --faint: #5d7690;
+  --panel: #0a1a2a;
+  --panel-2: #0f2338;
+  --line: #1a3450;
+  --signal: #ffd23f;
+  --signal-ink: #1d1500;
+  --bad: #ff7a6b;
+  --good: #57d9a3;
+  --f-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --f-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --f-flag: "Apple Color Emoji", "Noto Color Emoji", "Segoe UI Emoji", sans-serif;
+  --dock-h: 0px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--sea); color: var(--ink); }
+body {
+  font: 15px/1.45 var(--f-body);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+  padding-bottom: calc(var(--dock-h) + env(safe-area-inset-bottom, 0px));
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+a { color: var(--signal); }
+:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.flag { font-family: var(--f-flag); font-style: normal; line-height: 1; }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22); }
+.muted { color: var(--muted); }
+.linkish { border: 0; background: none; padding: 0; color: inherit; font-weight: inherit; text-align: left; }
+.linkish:hover { text-decoration: underline; }
+
+/* Header */
+.top {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--sea) 90%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px));
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; border: 0; background: none; padding: 0; }
+.swatch {
+  width: 22px; height: 22px; border-radius: 50%; flex: none;
+  background: conic-gradient(#e8323c 0 25%, #3d6fe3 0 45%, #f2b81e 0 62%, #1fae5b 0 80%, #8b5cf6 0);
+  box-shadow: 0 0 0 2px var(--sea), 0 0 0 3px var(--line);
+}
+.word {
+  font-family: var(--f-display); font-weight: 900; font-size: 24px; letter-spacing: .02em;
+  text-transform: uppercase; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hstats { display: flex; gap: 6px; align-items: center; }
+.hstat { display: inline-flex; align-items: baseline; gap: 5px; font-size: 13px; color: var(--muted); white-space: nowrap; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); }
+.hstat b { color: var(--ink); font-family: var(--f-mono); font-weight: 700; font-size: 12px; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 0 rgba(87, 217, 163, .6); animation: pulse 2s infinite; align-self: center; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(87, 217, 163, .55); } 70% { box-shadow: 0 0 0 7px rgba(87, 217, 163, 0); } 100% { box-shadow: 0 0 0 0 rgba(87, 217, 163, 0); } }
+.chip {
+  border: 1px solid var(--line); background: var(--panel); border-radius: 999px;
+  padding: 6px 12px; font-size: 13px; font-weight: 600; letter-spacing: .04em; white-space: nowrap;
+}
+.chip:hover { border-color: var(--faint); }
+.clock { display: inline-flex; align-items: center; gap: 6px; font-family: var(--f-mono); font-weight: 700; letter-spacing: 0; }
+.clock.ready { background: var(--signal); color: var(--signal-ink); border-color: var(--signal); font-family: var(--f-body); }
+.clock svg { flex: none; }
+
+/* Ticker */
+.ticker { position: relative; overflow: hidden; height: 30px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.ticker::before, .ticker::after { content: ""; position: absolute; top: 0; bottom: 0; width: 24px; z-index: 1; pointer-events: none; }
+.ticker::before { left: 0; background: linear-gradient(to right, var(--sea), transparent); }
+.ticker::after { right: 0; background: linear-gradient(to left, var(--sea), transparent); }
+.ticker-track { display: inline-flex; gap: 28px; white-space: nowrap; height: 100%; align-items: center; padding-left: 16px; animation: tick var(--tick-dur, 40s) linear infinite; will-change: transform; }
+.ticker:hover .ticker-track { animation-play-state: paused; }
+.ticker-track > span { display: inline-flex; align-items: center; gap: 6px; }
+.ticker-track b { color: var(--ink); font-weight: 600; }
+.ticker-track .gold { color: var(--signal); font-weight: 700; }
+@keyframes tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* Map */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); }
+.mapwrap {
+  position: relative; height: min(58svh, 540px); min-height: 300px;
+  background: radial-gradient(120% 90% at 50% 40%, var(--sea-2), var(--sea) 70%);
+  overflow: hidden; touch-action: none;
+}
+#map { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-select: none; }
+#map .sphere { fill: var(--sea-2); }
+#map .grat { fill: none; stroke: var(--grat); stroke-width: .6; vector-effect: non-scaling-stroke; }
+#map .land { stroke: var(--edge); stroke-width: .6; vector-effect: non-scaling-stroke; transition: fill .5s ease, fill-opacity .5s ease; }
+#map .land.playable { cursor: pointer; }
+#map .land.dead { fill: #1b2938; }
+#map .land.opened { pointer-events: none; }
+#map .prov { stroke: var(--edge); stroke-width: .5; vector-effect: non-scaling-stroke; cursor: pointer; transition: fill .5s ease; }
+#map .cborder { fill: none; stroke: #9fb3c8; stroke-opacity: .7; stroke-width: 1.1; vector-effect: non-scaling-stroke; pointer-events: none; }
+#map .hatch { fill: url(#hatch); pointer-events: none; }
+#map .sel { fill: none; stroke: var(--signal); stroke-width: 2.4; vector-effect: non-scaling-stroke; pointer-events: none; }
+#map .plbl { font-family: var(--f-body); font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--sea); stroke-linejoin: round; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+#map .plbl tspan.crown { fill: var(--signal); }
+@media (hover: hover) {
+  #map .land.playable:hover, #map .prov:hover { filter: brightness(1.25); }
+}
+.mapcap {
+  position: absolute; left: 0; top: 0; right: 0;
+  padding: 14px 70px 28px max(16px, env(safe-area-inset-left, 0px));
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--sea) 92%, transparent) 55%, transparent);
+  pointer-events: none;
+}
+.mapcap h1 {
+  margin: 0; font-family: var(--f-display); font-weight: 800; text-transform: uppercase;
+  font-size: clamp(26px, 6vw, 46px); line-height: .92; letter-spacing: .01em; text-wrap: balance;
+}
+.mapcap p { margin: 6px 0 0; color: var(--muted); font-size: 13px; max-width: 40ch; }
+.maptools {
+  position: absolute; right: max(12px, env(safe-area-inset-right, 0px)); top: 12px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.maptools button {
+  width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 90%, transparent); font-size: 18px; font-weight: 600;
+  display: grid; place-items: center;
+}
+.legend {
+  position: absolute; left: max(12px, env(safe-area-inset-left, 0px)); bottom: 12px; right: 60px;
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--muted); pointer-events: none;
+}
+.legend > span { display: inline-flex; align-items: center; gap: 6px; background: color-mix(in srgb, var(--sea) 80%, transparent); padding: 4px 8px; border-radius: 8px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.legend .l-free { background: var(--land); }
+.legend .l-hot { background: repeating-linear-gradient(45deg, #9fb3c8 0 2px, transparent 2px 5px); border: 1px solid #5d7690; }
+.legend .l-crown { color: var(--signal); font-size: 13px; line-height: 1; }
+.hint {
+  position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%);
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px;
+  font-size: 13px; color: var(--ink); white-space: nowrap; pointer-events: none; max-width: calc(100% - 32px);
+  overflow: hidden; text-overflow: ellipsis;
+}
+.mapstatus {
+  position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted);
+  font-size: 14px; text-align: center; padding: 24px;
+}
+.tip {
+  position: absolute; pointer-events: none; z-index: 5;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 10px; font-size: 13px; white-space: nowrap; transform: translate(-50%, calc(-100% - 12px));
+}
+.tip small { color: var(--muted); display: flex; align-items: center; gap: 6px; }
+
+/* Side */
+.side {
+  display: flex; flex-direction: column; gap: 14px; min-width: 0;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px));
+}
+.side > * { flex-shrink: 0; }
+.dock {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 12px 12px 14px;
+  position: relative; overflow: hidden;
+}
+.dock::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--team, var(--faint)); }
+.dock-who { display: flex; align-items: center; gap: 8px; min-width: 0; font-weight: 600; }
+.dock-who b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dock-who .tn { color: var(--muted); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dock-state { color: var(--muted); font-size: 13px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dock-state .num { color: var(--ink); }
+.dock-state.ready { color: var(--signal); }
+.cta {
+  border: 0; border-radius: 10px; padding: 11px 16px; font-weight: 700;
+  background: var(--signal); color: var(--signal-ink); white-space: nowrap;
+}
+.cta:disabled { background: var(--panel); color: var(--muted); border: 1px solid var(--line); }
+.cta.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.cta.small { padding: 8px 12px; font-size: 14px; }
+.cta.bad { background: var(--bad); color: #2a0703; }
+
+/* World share bar */
+.wbar { display: flex; flex-direction: column; gap: 8px; }
+.wbar-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.wbar-track { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: var(--panel); border: 1px solid var(--line); }
+.wbar-track > span { height: 100%; transition: width .6s ease; min-width: 2px; }
+.wbar-leg { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--muted); }
+.wbar-leg > button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 0; color: inherit; min-width: 0; max-width: 100%; }
+.wbar-leg > button span:not(.dot) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wbar-leg b { color: var(--ink); font-weight: 600; }
+
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button {
+  border: 0; background: none; padding: 10px 10px; color: var(--muted); font-weight: 600; white-space: nowrap; flex: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--signal); }
+.panel, .pbody { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+.search { position: relative; }
+.search input, .field input {
+  width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; outline: none;
+}
+.search input:focus, .field input:focus { border-color: var(--faint); }
+.suggest {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 10;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; max-height: 300px; overflow: auto;
+}
+.opt {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 9px 12px; border: 0; background: none; min-width: 0;
+}
+.opt > span:not(.flag):not(.dot) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.opt:hover, .opt.active { background: var(--panel); }
+.opt .flag { font-size: 18px; }
+.opt small { margin-left: auto; color: var(--muted); white-space: nowrap; }
+
+.eyebrow { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); font-weight: 700; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.eyebrow small { letter-spacing: 0; text-transform: none; font-weight: 500; font-size: 12px; }
+.c-head { display: flex; gap: 12px; align-items: center; min-width: 0; }
+.c-head h2 { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: 32px; line-height: 1; text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; }
+.c-sub { color: var(--muted); font-size: 14px; margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.badge { width: 44px; height: 44px; border-radius: 12px; flex: none; display: grid; place-items: center; font-size: 28px; background: var(--panel); border: 1px solid var(--line); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.hot { background: color-mix(in srgb, var(--bad) 20%, transparent); color: var(--bad); }
+.pill.mine { background: color-mix(in srgb, var(--good) 18%, transparent); color: var(--good); }
+.pill.free { background: var(--panel); color: var(--muted); border: 1px solid var(--line); }
+.pill.gold { background: color-mix(in srgb, var(--signal) 18%, transparent); color: var(--signal); }
+
+.bars { display: flex; flex-direction: column; gap: 8px; }
+.bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
+.bar .lab { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.bar .lab span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar .lab small { color: var(--muted); }
+.bar .track { grid-column: 1 / -1; height: 8px; border-radius: 4px; background: var(--panel); overflow: hidden; }
+.bar .fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
+.card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); min-width: 0; }
+.card > div { min-width: 0; flex: 1; }
+.card b { font-weight: 600; }
+.card small { color: var(--muted); display: block; }
+button.card { text-align: left; width: 100%; }
+.empty { color: var(--muted); font-size: 14px; padding: 6px 0; margin: 0; }
+.note { color: var(--muted); font-size: 13px; margin: 0; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.actions .cta { flex: 1 1 140px; }
+.back { align-self: flex-start; border: 0; background: none; color: var(--muted); padding: 4px 0; font-weight: 600; }
+
+.statgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 480px) and (max-width: 899px) { .statgrid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.stat { padding: 10px 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); min-width: 0; }
+.stat b { display: block; font-family: var(--f-display); font-weight: 800; font-size: 26px; line-height: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stat small { color: var(--muted); font-size: 12px; display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.steps { display: grid; gap: 8px; counter-reset: st; }
+.steps > div { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
+.steps > div::before { counter-increment: st; content: counter(st); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--signal); color: var(--signal-ink); font-family: var(--f-display); font-weight: 900; font-size: 18px; }
+.steps b { display: block; font-weight: 700; }
+.steps small { color: var(--muted); font-size: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips .chip { display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0; font-weight: 600; }
+.chips .chip small { color: var(--muted); font-family: var(--f-mono); font-size: 11px; }
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.list li { display: grid; grid-template-columns: 28px 18px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.list li:last-child { border-bottom: 0; }
+.list li.click { cursor: pointer; }
+.list li.click:hover { background: var(--panel); }
+.list .rk { color: var(--faint); font-size: 13px; }
+.list .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list .nm small { color: var(--muted); }
+.list .v { text-align: right; font-size: 13px; white-space: nowrap; }
+.list .v small { color: var(--muted); display: block; font-size: 11px; }
+.list li.me { background: color-mix(in srgb, var(--signal) 8%, transparent); }
+.list.flat li { grid-template-columns: 18px minmax(0, 1fr) auto; }
+.feed li { grid-template-columns: 18px minmax(0, 1fr) auto; }
+.feed .v { color: var(--muted); }
+.more { border: 0; background: none; color: var(--signal); font-weight: 600; padding: 6px 0; align-self: flex-start; }
+h3.sec { margin: 4px 0 0; font-family: var(--f-display); font-weight: 800; font-size: 20px; text-transform: uppercase; letter-spacing: .02em; }
+.rstats { color: var(--muted); font-size: 14px; margin: 0; }
+.rstats b { color: var(--ink); }
+.credit { color: var(--faint); font-size: 12px; margin: 0; }
+
+/* Chairs */
+.seatbox { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 12px; background: linear-gradient(160deg, color-mix(in srgb, var(--signal) 10%, var(--panel)), var(--panel) 60%); border: 1px solid color-mix(in srgb, var(--signal) 35%, var(--line)); }
+.seatrow { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.seatrow > div { min-width: 0; flex: 1; }
+.seatrow b { font-weight: 700; overflow-wrap: anywhere; }
+.seatrow small { display: block; color: var(--muted); font-size: 13px; }
+.seatrow .price { font-size: 28px; text-align: right; flex: none; }
+.seatrow .price small { display: block; margin: 0 0 2px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--faint); }
+.crown { flex: none; }
+
+/* Levels */
+.lvl { --c: #8ea4ba; width: 44px; height: 44px; flex: none; border-radius: 50%; display: grid; place-items: center; font-family: var(--f-display); font-weight: 900; font-size: 20px; color: var(--sea); background: var(--c); box-shadow: 0 0 0 3px var(--sea), 0 0 0 4px var(--c); }
+.lvl.sm { width: 22px; height: 22px; font-size: 12px; box-shadow: none; }
+.lvl.lg { width: 64px; height: 64px; font-size: 30px; }
+.xp { display: flex; flex-direction: column; gap: 6px; }
+.xp-track { height: 10px; border-radius: 5px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
+.xp-fill { height: 100%; background: linear-gradient(90deg, var(--signal), #ff9f1c); border-radius: 5px; transition: width .6s ease; }
+.xp small { color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; gap: 8px; }
+.ttable { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ttable td { padding: 6px 4px; border-bottom: 1px solid var(--line); }
+.ttable td:last-child { text-align: right; color: var(--muted); font-family: var(--f-mono); font-size: 12px; }
+
+.codebox { font-family: var(--f-mono); font-size: 13px; word-break: break-all; background: var(--sea); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px; color: var(--ink); user-select: all; }
+.codebox.masked { color: var(--faint); letter-spacing: .1em; user-select: none; }
+.acct { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+
+.foot { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+.foot nav { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.foot nav button { border: 0; background: none; padding: 0; color: var(--muted); font-size: 13px; }
+.foot nav button:hover { color: var(--ink); text-decoration: underline; }
+
+/* Dialogs */
+dialog {
+  border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); border-radius: 16px;
+  padding: 20px; width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 40px);
+}
+dialog::backdrop { background: rgba(2, 8, 14, .72); backdrop-filter: blur(3px); }
+dialog h2 { margin: 0 0 4px; font-family: var(--f-display); font-weight: 900; font-size: 30px; text-transform: uppercase; line-height: 1; }
+dialog h3 { margin: 6px 0 0; font-size: 16px; }
+dialog form { display: flex; flex-direction: column; gap: 12px; }
+dialog p { margin: 0; }
+.prose { display: flex; flex-direction: column; gap: 10px; font-size: 14px; color: var(--ink); }
+.prose ul, .prose ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.prose li { color: var(--ink); }
+.prose .muted { font-size: 13px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label, .field .lbl { font-weight: 600; font-size: 14px; }
+.field small { color: var(--muted); font-size: 12px; }
+.teamlist { max-height: 38dvh; overflow: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.err { color: var(--bad); font-size: 14px; margin: 0; }
+.row { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.row .cta { white-space: normal; }
+.row .cta.grow { flex: 1 1 200px; }
+.seg { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px; }
+.seg button { flex: 1; border: 0; background: none; padding: 8px 4px; font-size: 14px; border-radius: 8px; font-weight: 600; color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--panel-2); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.palette { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
+.palette button { aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; padding: 0; min-width: 0; }
+.palette button[aria-checked="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 3px var(--panel-2); }
+.buybox { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+.buybox ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 14px; }
+.price { font-family: var(--f-display); font-weight: 900; font-size: 40px; line-height: 1; }
+.price small { font-family: var(--f-body); font-weight: 500; font-size: 14px; color: var(--muted); margin-left: 6px; }
+
+.toast {
+  position: fixed; left: 50%; z-index: 50; transform: translateX(-50%);
+  bottom: calc(var(--dock-h) + 16px + env(safe-area-inset-bottom, 0px));
+  background: var(--ink); color: var(--sea); font-weight: 600; border-radius: 12px; padding: 10px 16px;
+  max-width: calc(100vw - 32px); box-shadow: 0 10px 30px rgba(0, 0, 0, .4); font-size: 14px;
+}
+.toast.bad { background: var(--bad); color: #2a0703; }
+
+@media (max-width: 899px) {
+  .dock {
+    position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; border-radius: 16px 16px 0 0;
+    border-width: 1px 0 0;
+    padding: 12px max(14px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, .35);
+  }
+  .hstats { display: none; }
+  .dock-who .tn { display: none; }
+  body.playing .mapcap { display: none; }
+  .mapcap h1 { font-size: 28px; }
+}
+@media (max-width: 420px) {
+  .word { font-size: 20px; } .topbar { gap: 6px; } .chip { padding: 6px 10px; }
+  .tabs button { padding: 10px 8px; }
+  .legend { gap: 4px; font-size: 11px; right: 56px; }
+  .legend > span { padding: 3px 6px; gap: 5px; }
+}
+@media (max-width: 1180px) { .hstat.opt2 { display: none; } }
+body.explored .mapcap { display: none; }
+@media (min-width: 900px) {
+  body { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+  .layout { flex: 1; min-height: 0; grid-template-columns: minmax(0, 1fr) 420px; }
+  .mapwrap { height: auto; }
+  .side { border-left: 1px solid var(--line); overflow-y: auto; background: var(--sea); }
+  .toast { bottom: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  .ticker { overflow-x: auto; scrollbar-width: none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="topbar">
+    <button class="brand" id="brandBtn" type="button" aria-label="Fethet"><span class="swatch" aria-hidden="true"></span><span class="word" data-i18n="brand">Fethet</span></button>
+    <div class="hstats" id="hstats">
+      <span class="hstat"><span class="live-dot" aria-hidden="true"></span><b id="hsPlayers">–</b><span data-i18n="players">players</span></span>
+      <span class="hstat"><b id="hsHour">–</b><span data-i18n="votesHour">votes this hour</span></span>
+      <span class="hstat opt2"><b id="hsProv">–</b><span data-i18n="painted">provinces painted</span></span>
+      <span class="hstat opt2"><b id="hsChairs">–</b><span data-i18n="chairsShort">chairs</span></span>
+    </div>
+    <button class="chip clock" id="clockBtn" type="button"></button>
+    <button class="chip" id="langBtn" type="button" aria-label="Language">TR</button>
+    <button class="chip" id="helpBtn" type="button" aria-label="How to play">?</button>
+  </div>
+  <div class="ticker" id="ticker" aria-live="off"><div class="ticker-track" id="tickerTrack"></div></div>
+</header>
+
+<main class="layout">
+  <section class="mapwrap" id="mapWrap">
+    <svg id="map" aria-label="World map"></svg>
+    <div class="mapcap" id="mapCap">
+      <h1 data-i18n="tagline">Every province on Earth is up for grabs.</h1>
+      <p data-i18n="taglineSub">Start a team, vote once an hour, and paint provinces from Tokat to Tokyo in your color.</p>
+    </div>
+    <div class="maptools">
+      <button type="button" id="zIn" aria-label="Zoom in">+</button>
+      <button type="button" id="zOut" aria-label="Zoom out">−</button>
+      <button type="button" id="zHome" aria-label="Reset view">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M1.8 8h12.4M8 1.8c2 2 2 10.4 0 12.4M8 1.8c-2 2-2 10.4 0 12.4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+      </button>
+    </div>
+    <div class="legend"><span><i class="l-free"></i><span data-i18n="unclaimed">Unclaimed</span></span><span><i class="l-hot"></i><span data-i18n="contested">Contested</span></span><span><span class="l-crown">♛</span><span data-i18n="chaired">Has a chair</span></span></div>
+    <div class="hint" id="hint" hidden></div>
+    <div class="tip" id="tip" hidden></div>
+    <div class="mapstatus" id="mapStatus"><div data-i18n="loadingMap">Loading map…</div></div>
+  </section>
+
+  <aside class="side">
+    <div class="dock" id="dock">
+      <div style="min-width:0">
+        <div class="dock-who" id="dockWho"></div>
+        <div class="dock-state" id="dockState"></div>
+      </div>
+      <button type="button" class="cta" id="cta"></button>
+    </div>
+
+    <section class="wbar" id="wbar" aria-labelledby="wbarTitle"></section>
+
+    <nav class="tabs" role="tablist">
+      <button type="button" role="tab" id="tabProv" aria-selected="true" data-tab="prov" data-i18n="tProv">Map</button>
+      <button type="button" role="tab" id="tabTeams" aria-selected="false" data-tab="teams" data-i18n="tTeams">Teams</button>
+      <button type="button" role="tab" id="tabRank" aria-selected="false" data-tab="rank" data-i18n="tRank">Rankings</button>
+      <button type="button" role="tab" id="tabLive" aria-selected="false" data-tab="live" data-i18n="tLive">Live</button>
+      <button type="button" role="tab" id="tabMe" aria-selected="false" data-tab="me" data-i18n="tMe">Profile</button>
+    </nav>
+
+    <div class="panel" id="pProv" role="tabpanel">
+      <div class="search">
+        <input id="findInput" type="search" autocomplete="off" data-i18n-ph="find" placeholder="Find a province">
+        <div class="suggest" id="findList" hidden></div>
+      </div>
+      <div class="pbody" id="provBody"></div>
+    </div>
+    <div class="panel" id="pTeams" role="tabpanel" hidden><div class="pbody" id="teamsBody"></div></div>
+    <div class="panel" id="pRank" role="tabpanel" hidden><div class="pbody" id="rankBody"></div></div>
+    <div class="panel" id="pLive" role="tabpanel" hidden><div class="pbody" id="liveBody"></div></div>
+    <div class="panel" id="pMe" role="tabpanel" hidden><div class="pbody" id="meBody"></div></div>
+
+    <footer class="foot">
+      <nav>
+        <button type="button" data-open="help" data-i18n="how">How to play</button>
+        <button type="button" data-open="terms" data-i18n="terms">Terms</button>
+        <button type="button" data-open="privacy" data-i18n="privacy">Privacy</button>
+        <button type="button" data-open="refund" data-i18n="refund">Refunds</button>
+      </nav>
+      <p class="credit" id="contactLine" hidden></p>
+      <p class="credit" data-i18n="credit">Province borders: geoBoundaries (CC BY 4.0). Country borders: Natural Earth.</p>
+    </footer>
+  </aside>
+</main>
+
+<dialog id="joinDlg">
+  <form id="joinForm" novalidate>
+    <h2 data-i18n="joinTitle">Pick a nickname</h2>
+    <div class="field">
+      <label for="nickInput" data-i18n="nick">Nickname</label>
+      <input id="nickInput" maxlength="20" autocomplete="nickname" spellcheck="false">
+      <small data-i18n="nickHint">3–20 characters: letters, numbers, _ or .</small>
+    </div>
+    <p class="err" id="joinErr" hidden></p>
+    <small class="muted"><span data-i18n="haveCode">Played before?</span> <button type="button" class="linkish" id="toRestore" style="color:var(--signal);font-weight:600" data-i18n="useCode">Sign in with your recovery code</button></small>
+    <div class="row">
+      <button type="button" class="cta ghost" data-close data-i18n="cancel">Cancel</button>
+      <button type="submit" class="cta grow" id="joinGo" data-i18n="next">Continue</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="restoreDlg">
+  <form id="restoreForm" novalidate>
+    <h2 data-i18n="restoreTitle">Sign in with code</h2>
+    <p class="muted" data-i18n="restoreText">Paste the recovery code from your Profile tab on your other device.</p>
+    <div class="field">
+      <label for="codeInput" data-i18n="code">Recovery code</label>
+      <input id="codeInput" autocomplete="off" spellcheck="false" style="font-family:var(--f-mono)">
+    </div>
+    <p class="err" id="restoreErr" hidden></p>
+    <div class="row">
+      <button type="button" class="cta ghost" data-close data-i18n="cancel">Cancel</button>
+      <button type="submit" class="cta grow" id="restoreGo" data-i18n="signIn">Sign in</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="teamDlg">
+  <form id="teamForm" novalidate>
+    <h2 data-i18n="teamDlgTitle">Your team</h2>
+    <div class="seg" role="group">
+      <button type="button" id="segJoin" aria-pressed="true" data-i18n="segJoin">Join a team</button>
+      <button type="button" id="segNew" aria-pressed="false" data-i18n="segNew">Start a team</button>
+    </div>
+    <div id="joinPane" class="field">
+      <input id="teamSearch" type="search" autocomplete="off" data-i18n-ph="searchTeams" placeholder="Search teams" aria-label="Search teams">
+      <div class="teamlist" id="teamList"></div>
+    </div>
+    <div id="newPane" class="field" hidden>
+      <label for="teamName" data-i18n="teamName">Team name</label>
+      <input id="teamName" maxlength="24" autocomplete="off">
+      <small data-i18n="teamNameHint">3–24 characters.</small>
+      <span class="lbl" data-i18n="teamColor">Color</span>
+      <div class="palette" id="palette" role="radiogroup"></div>
+    </div>
+    <small class="muted" data-i18n="switchNote">You can switch teams once every 24 hours. A team owner can't leave their team.</small>
+    <p class="err" id="teamErr" hidden></p>
+    <div class="row">
+      <button type="button" class="cta ghost" data-close data-i18n="cancel">Cancel</button>
+      <button type="submit" class="cta grow" id="teamGo" hidden data-i18n="create">Start team</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="buyDlg">
+  <form id="buyForm" novalidate>
+    <h2 data-i18n="buyTitle">Buy this team</h2>
+    <div class="card" id="buyTeam"></div>
+    <div class="buybox">
+      <div class="price" id="buyPrice">$2</div>
+      <ul>
+        <li data-i18n="buy1">You become the team's owner, shown with a crown.</li>
+        <li data-i18n="buy2">You can rename the team and change its color.</li>
+        <li data-i18n="buy3">You move into this team. The old owner stays as a member.</li>
+        <li data-i18n="buy4">Anyone can buy it from you the same way.</li>
+        <li id="buy5" data-i18n="buy5" hidden>Chairs you hold in your current team are given up.</li>
+      </ul>
+    </div>
+    <small class="muted" data-i18n="buyNote">Payment happens on Lemon Squeezy's secure checkout page. Come back here after paying.</small>
+    <p class="err" id="buyErr" hidden></p>
+    <div class="row">
+      <button type="button" class="cta ghost" data-close data-i18n="cancel">Cancel</button>
+      <button type="submit" class="cta grow" id="buyGo" data-i18n="toCheckout">Go to payment</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="seatDlg">
+  <form id="seatForm" novalidate>
+    <h2 data-i18n="seatTitle">Become chair</h2>
+    <div class="card" id="seatWhat"></div>
+    <div class="buybox">
+      <div class="price" id="seatPrice">$1</div>
+      <div class="muted" id="seatNow" style="font-size:14px"></div>
+      <ul id="seatPerks"></ul>
+    </div>
+    <small class="muted" data-i18n="buyNote">Payment happens on Lemon Squeezy's secure checkout page. Come back here after paying.</small>
+    <p class="err" id="seatErr" hidden></p>
+    <div class="row">
+      <button type="button" class="cta ghost" data-close data-i18n="cancel">Cancel</button>
+      <button type="submit" class="cta grow" id="seatGo" data-i18n="toCheckout">Go to payment</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="editDlg">
+  <form id="editForm" novalidate>
+    <h2 data-i18n="editTitle">Edit team</h2>
+    <div class="field">
+      <label for="editName" data-i18n="teamName">Team name</label>
+      <input id="editName" maxlength="24" autocomplete="off">
+      <span class="lbl" data-i18n="teamColor">Color</span>
+      <div class="palette" id="editPalette" role="radiogroup"></div>
+    </div>
+    <p class="err" id="editErr" hidden></p>
+    <div class="row">
+      <button type="button" class="cta ghost" data-close data-i18n="cancel">Cancel</button>
+      <button type="submit" class="cta grow" data-i18n="save">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="logoutDlg">
+  <form method="dialog">
+    <h2 data-i18n="logoutTitle">Sign out?</h2>
+    <p class="muted" data-i18n="logoutText">Without your recovery code you can't get this account back. Copy it first from your Profile tab.</p>
+    <div class="row">
+      <button type="button" class="cta ghost" data-close data-i18n="cancel">Cancel</button>
+      <button type="button" class="cta bad grow" id="logoutGo" data-i18n="signOut">Sign out</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="docDlg">
+  <form method="dialog">
+    <div class="seg" role="group" id="docSeg">
+      <button type="button" data-doc="help" data-i18n="segHow">Play</button>
+      <button type="button" data-doc="terms" data-i18n="segTerms">Terms</button>
+      <button type="button" data-doc="privacy" data-i18n="segPrivacy">Privacy</button>
+      <button type="button" data-doc="refund" data-i18n="segRefund">Refunds</button>
+    </div>
+    <div class="prose" id="docBody"></div>
+    <div class="row"><button class="cta" value="ok" data-i18n="gotIt">Got it</button></div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<noscript><p style="padding:16px">Fethet needs JavaScript to run.</p></noscript>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+/*APP*/
+</script>
+</body>
+</html>
