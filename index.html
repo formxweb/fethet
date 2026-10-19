@@ -544,6 +544,7 @@ body.explored .mapcap { display: none; }
       <small data-i18n="teamNameHint">3–24 characters.</small>
       <span class="lbl" data-i18n="teamColor">Color</span>
       <div class="palette" id="palette" role="radiogroup"></div>
+      <div class="buybox" id="createBox" hidden><div class="price" id="createPrice">$2</div><small class="muted" id="createNote"></small></div>
     </div>
     <small class="muted" data-i18n="switchNote">You can switch teams once every 24 hours. A team owner can't leave their team.</small>
     <p class="err" id="teamErr" hidden></p>
@@ -714,7 +715,7 @@ const T = {
     shareProv: '{p} is held by {t} on Fethet. Come take it back:', shareProvFree: '{p} is still unclaimed on Fethet. Grab it:',
     shareTeam: 'Join {t} on Fethet and paint the world:', shareMe: 'I’m {n} on Fethet. Join my team:',
     pickHint: 'Tap a country on the map to open its provinces, or search above.',
-    step1: 'Join or start a team', step1s: 'Pick a color. Anyone can start one.',
+    step1: 'Join or start a team', step1s: 'Pick a color. Anyone can start one.', step1sPaid: 'Join any team for free, or start your own for {price}.', createLbl: 'Start team · {price}', createNote: 'You pay on Lemon Squeezy’s secure checkout. Your team is created as soon as the payment goes through, and you become its owner.', createPending: 'Your team is being set up…',
     step2: 'Vote once every hour', step2s: 'Each province takes the color of the team with the most points in 7 days.',
     step3: 'Become a province chair', step3s: 'Claim a chair for {base} and earn XP every hour.',
     yourTeam: 'Your team', holds: '{c} provinces', hold1: '1 province', members: '{m} members', member1: '1 member',
@@ -763,6 +764,7 @@ const T = {
       bad_team_name: 'Team name: 3–24 characters, letters and numbers.',
       team_name_taken: 'A team with that name already exists.',
       bad_color: 'Pick a color.',
+      payment_required: 'Starting a team now costs money. Refresh the page and try again.',
       team_create_cooldown: 'You can start one team per day.',
       switch_cooldown: 'You can switch teams once every 24 hours.',
       owner_cannot_leave: "You own your team, so you can't leave it.",
@@ -781,7 +783,7 @@ const T = {
     },
     docs: {
       help: `<h3>Basics</h3><ol>
-<li>Pick a nickname, then join a team or start your own.</li>
+<li>Pick a nickname, then join a team or start your own.{create}</li>
 <li>You get <b>one vote every clock hour</b>; it refreshes at :00. Tap a country to open its provinces and spend your vote on any province.</li>
 <li>Each province takes the color of the team with the most points in the last 7 days. A lead of 1 point or less shows as stripes (contested).</li>
 <li>Once a day you can <b>rally</b>: +{rally} points to one province in a single move.</li>
@@ -858,7 +860,7 @@ const T = {
     shareProv: '{p} şu an Fethet’te {t} takımının. Gel geri al:', shareProvFree: '{p} Fethet’te hâlâ sahipsiz. Kap:',
     shareTeam: 'Fethet’te {t} takımına katıl, dünyayı boya:', shareMe: 'Fethet’te {n} benim. Takımıma katıl:',
     pickHint: 'İllerini açmak için haritada bir ülkeye dokun ya da yukarıdan ara.',
-    step1: 'Takıma katıl ya da kur', step1s: 'Rengini seç. Herkes takım kurabilir.',
+    step1: 'Takıma katıl ya da kur', step1s: 'Rengini seç. Herkes takım kurabilir.', step1sPaid: 'Bir takıma ücretsiz katıl ya da {price} ile kendi takımını kur.', createLbl: 'Takımı kur · {price}', createNote: 'Ödeme Lemon Squeezy’nin güvenli sayfasında yapılır. Ödeme geçer geçmez takımın kurulur ve sahibi sen olursun.', createPending: 'Takımın kuruluyor…',
     step2: 'Saatte bir oy ver', step2s: 'Her il, 7 günde en çok puanı alan takımın rengine boyanır.',
     step3: 'İl başkanı ol', step3s: 'Koltuğu {base} karşılığında al, her saat XP kazan.',
     yourTeam: 'Takımın', holds: '{c} il', hold1: '1 il', members: '{m} üye', member1: '1 üye',
@@ -907,6 +909,7 @@ const T = {
       bad_team_name: 'Takım adı 3–24 karakter olmalı, harf ve rakamlardan oluşmalı.',
       team_name_taken: 'Bu isimde bir takım zaten var.',
       bad_color: 'Bir renk seç.',
+      payment_required: 'Takım kurmak artık ücretli. Sayfayı yenileyip tekrar dene.',
       team_create_cooldown: 'Günde bir takım kurabilirsin.',
       switch_cooldown: 'Takımını 24 saatte bir değiştirebilirsin.',
       owner_cannot_leave: 'Takımın sahibisin, bu yüzden ayrılamazsın.',
@@ -925,7 +928,7 @@ const T = {
     },
     docs: {
       help: `<h3>Temeller</h3><ol>
-<li>Takma ad seç, bir takıma katıl ya da kendi takımını kur.</li>
+<li>Takma ad seç, bir takıma katıl ya da kendi takımını kur.{create}</li>
 <li><b>Her saat başı 1 oy</b> hakkın olur, saat :00’da yenilenir. Bir ülkeye dokun, illeri açılsın; oyunu istediğin ile ver.</li>
 <li>Her il, son 7 günde en çok puanı toplayan takımın rengine boyanır. Fark 1 puan ya da azsa il çizgili (çekişmeli) görünür.</li>
 <li>Günde bir kez <b>seferberlik</b> yapabilirsin: tek hamlede bir ile +{rally} puan.</li>
@@ -984,7 +987,7 @@ function h(tag, attrs, ...kids) {
 const S = {
   lang: 'en', me: null, secret: null, offset: 0,
   prov: new Map(), teams: new Map(), feed: [], top: [], chairs: [], players: 0, votes24: 0, votesHour: 0, provTotal: 0,
-  teamsTotal: 0, seatsTotal: 0, pc: {}, price: 200, seatBase: 100, seatStep: 100, seatXp: 20, rallyPts: 10, checkout: false, contact: '',
+  teamsTotal: 0, seatsTotal: 0, pc: {}, price: 200, createPrice: 0, seatBase: 100, seatStep: 100, seatXp: 20, rallyPts: 10, checkout: false, contact: '',
   sel: null, detail: null, country: null, countryAll: false, tab: 'prov', teamView: null, teamDetail: null, teamFilter: '',
   rankMode: 'teams', chairData: null, chairAt: 0, profileView: null, profileData: null, myProfile: null, showCode: false,
   opened: new Map(), mapReady: false, busy: false, rallyArm: null, loaded: false, pending: null
@@ -1526,7 +1529,7 @@ function renderHome(body) {
   const parts = [];
   if (!S.me || !S.me.team) {
     parts.push(h('div', { class: 'steps' },
-      h('div', null, h('div', null, h('b', null, t('step1')), h('small', null, t('step1s')))),
+      h('div', null, h('div', null, h('b', null, t('step1')), h('small', null, S.createPrice ? t('step1sPaid', { price: money(S.createPrice) }) : t('step1s')))),
       h('div', null, h('div', null, h('b', null, t('step2')), h('small', null, t('step2s')))),
       h('div', null, h('div', null, h('b', null, t('step3')), h('small', null, t('step3s', { base: money(S.seatBase) }))))));
   }
@@ -1738,7 +1741,7 @@ function renderTeams() {
     teamsUI.head = [h('div', { class: 'actions' }, teamsUI.btn), h('div', { class: 'search' }, input), teamsUI.title];
   }
   const U = teamsUI;
-  U.btn.textContent = t('newTeam');
+  U.btn.textContent = S.createPrice > 0 ? `${t('newTeam')} · ${money(S.createPrice)}` : t('newTeam');
   U.title.textContent = t('teamsTitle');
   U.input.placeholder = t('filterTeams');
   U.input.setAttribute('aria-label', t('filterTeams'));
@@ -2291,6 +2294,10 @@ function setTeamMode(m) {
   $('joinPane').hidden = m !== 'join';
   $('newPane').hidden = m !== 'new';
   $('teamGo').hidden = m !== 'new';
+  $('createBox').hidden = !(m === 'new' && S.createPrice > 0);
+  $('createPrice').textContent = money(S.createPrice);
+  $('createNote').textContent = t('createNote');
+  $('teamGo').textContent = S.createPrice > 0 ? t('createLbl', { price: money(S.createPrice) }) : t('create');
   setErr('teamErr');
   if (m === 'join') loadTeamList();
   else setTimeout(() => $('teamName').focus(), 50);
@@ -2329,7 +2336,23 @@ $('teamForm').addEventListener('submit', async (ev) => {
   const btn = $('teamGo');
   btn.disabled = true;
   try {
-    const me = await rpc('pw_team_create', { p_secret: S.secret, p_name: name, p_color: pickColor });
+    if (S.createPrice > 0) {
+      try {
+        const r = await rpc('pw_create_start', { p_secret: S.secret, p_name: name, p_color: pickColor });
+        store.set('ptw2_purchase', r.id);
+        window.location.href = r.url;
+        return;
+      } catch (e) {
+        if (e.code !== 'free_create') throw e;
+        S.createPrice = 0;
+      }
+    }
+    let me;
+    try { me = await rpc('pw_team_create', { p_secret: S.secret, p_name: name, p_color: pickColor }); }
+    catch (e) {
+      if (e.code === 'payment_required') { rpc('pw_meta').then((m) => { S.createPrice = m.create_price || 200; setTeamMode('new'); }).catch(() => {}); }
+      throw e;
+    }
     $('teamDlg').close();
     $('teamName').value = '';
     setMe(me);
@@ -2408,6 +2431,11 @@ async function checkPurchase() {
         loadMyProfile();
         await refresh();
         if (r.status === 'problem') { toast(t('problemToast'), true); return; }
+        if (r.kind === 'create') {
+          toast(t('createdToast', { t: r.team }));
+          if (r.team_id) openTeam(r.team_id);
+          return;
+        }
         if (r.kind === 'seat') {
           if (r.pname) provNames.set(r.province, r.pname);
           toast(t('seatToast', { p: r.pname || provName(r.province) }));
@@ -2454,6 +2482,7 @@ function openDoc(name) {
     const take = (S.seatStep ? D.takeover : D.takeoverFlat).replace('{step}', money(S.seatStep)).replace('{base}', money(S.seatBase));
     html = html.replace('{takeover}', take).replace('{levels}', levelTable());
   }
+  html = html.replace('{create}', S.createPrice ? (S.lang === 'tr' ? ` Takıma katılmak ücretsiz, kendi takımını kurmak <b>${money(S.createPrice)}</b>.` : ` Joining is free; starting your own team costs <b>${money(S.createPrice)}</b>.`) : '');
   html = html.replace(/\{rally\}/g, S.rallyPts).replace(/\{base\}/g, money(S.seatBase)).replace(/\{xp\}/g, S.seatXp).replace(/\{price\}/g, money(S.price));
   $('docBody').innerHTML = html;
   showDlg($('docDlg'));
@@ -2624,6 +2653,7 @@ async function boot() {
   rpc('pw_meta').then((m) => {
     S.pc = m.pc || {};
     if (m.price_cents) S.price = m.price_cents;
+    if (m.create_price != null) S.createPrice = m.create_price;
     if (m.seat_base) S.seatBase = m.seat_base;
     if (m.seat_step != null) S.seatStep = m.seat_step;
     S.checkout = !!m.checkout;

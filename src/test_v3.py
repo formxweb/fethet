@@ -44,7 +44,7 @@ PROV = {"TR-34": ("TR", "İstanbul"), "TR-06": ("TR", "Ankara"), "TR-60": ("TR",
 now = lambda: dt.datetime.now(dt.timezone.utc)
 iso_ = lambda d: d.isoformat() if d else None
 players, teams, votes, purchases, events, seats = {}, {}, [], {}, [], {}
-BASE, STEP, SEATXP, RALLY = 100, 100, 20, 10
+BASE, STEP, SEATXP, RALLY, CREATE = 100, 100, 20, 10, 200
 
 def mk_player(secret, nick):
     players[secret] = {"id": str(uuid.uuid4()), "nickname": nick, "team": None, "joined": None, "last": None, "rally": None, "bank": 0, "created": now() - dt.timedelta(days=3)}
@@ -146,7 +146,7 @@ def profile(nick):
             "owns": [{"id": t["id"], "name": t["name"], "color": t["color"]} for t in teams.values() if t["owner"] == p["id"]],
             "fav": [{"i": i, "pn": PROV[i][1], "c": PROV[i][0], "p": n} for i, n in sorted(fav.items(), key=lambda x: -x[1])[:5]]}
 def rpc(name, b):
-    if name == "pw_meta": return {"pc": {"TR": 3, "JP": 2, "DE": 1}, "price_cents": 200, "seat_base": BASE, "seat_step": STEP, "checkout": True}
+    if name == "pw_meta": return {"pc": {"TR": 3, "JP": 2, "DE": 1}, "price_cents": 200, "create_price": CREATE, "seat_base": BASE, "seat_step": STEP, "checkout": True}
     if name == "pw_state": return state()
     if name == "pw_me":
         p = players.get(b["p_secret"]); return me_json(p) if p else None
@@ -157,7 +157,13 @@ def rpc(name, b):
     if name == "pw_teams":
         q = (b.get("p_q") or "").lower()
         return [{"id": t["id"], "name": t["name"], "color": t["color"], "members": team_row(t)["members"]} for t in teams.values() if q in t["name"].lower()]
+    if name == "pw_create_start":
+        p = need(b["p_secret"])
+        if any(t["name"].lower() == b["p_name"].lower() for t in teams.values()): raise E("team_name_taken")
+        pid = str(uuid.uuid4()); purchases[pid] = {"player": p, "team": None, "status": "pending", "kind": "create", "name": b["p_name"], "color": b["p_color"]}
+        return {"id": pid, "price_cents": CREATE, "url": f"https://pay.test/checkout/buy/x?quantity=2&checkout[custom][purchase_id]={pid}"}
     if name == "pw_team_create":
+        if CREATE > 0: raise E("payment_required")
         p = need(b["p_secret"])
         if any(t["name"].lower() == b["p_name"].lower() for t in teams.values()): raise E("team_name_taken")
         tid = str(uuid.uuid4())
@@ -230,6 +236,8 @@ def rpc(name, b):
         pu = purchases.get(b["p_purchase"])
         if not pu or players.get(b["p_secret"]) is not pu["player"]: return None
         i = pu.get("province")
+        if pu["kind"] == "create":
+            return {"status": pu["status"], "kind": "create", "team_id": pu["team"]["id"] if pu["team"] else None, "team": pu["name"], "province": None, "pname": None, "country": None, "problem": None}
         return {"status": pu["status"], "kind": pu["kind"], "team_id": pu["team"]["id"], "team": pu["team"]["name"],
                 "province": i, "pname": PROV[i][1] if i else None, "country": PROV[i][0] if i else None, "problem": None}
     if name == "pw_chairs":
@@ -243,6 +251,12 @@ def rpc(name, b):
 
 def complete(pid):  # what the webhook + SQL do
     pu = purchases[pid]; pu["status"] = "paid"; p = pu["player"]
+    if pu["kind"] == "create":
+        tid = str(uuid.uuid4())
+        teams[tid] = {"id": tid, "name": pu["name"], "color": pu["color"], "owner": p["id"], "founder": p["id"], "sales": 0}
+        p["team"], p["joined"] = tid, now(); pu["team"] = teams[tid]
+        events.append({"k": "created", "n": p["nickname"], "t": tid, "i": None, "a": 200, "at": now()})
+        return
     if pu["kind"] == "seat":
         key = (pu["province"], pu["team"]["id"]); old = seats.get(key)
         if old and old["holder"]: by_id(old["holder"])["bank"] += hours_xp(old["since"])
@@ -310,7 +324,14 @@ with sync_playwright() as pw:
     page.fill("#nickInput", "Ali"); page.click("#joinGo"); page.wait_for_timeout(200)
     print("2 taken:", txt(page, "#joinErr"))
     page.fill("#nickInput", "Burak"); page.click("#joinGo"); page.wait_for_selector("#teamDlg[open]"); page.wait_for_timeout(300)
-    page.click("#segNew"); page.fill("#teamName", "Tokat Aslanları"); page.click("#palette button:nth-child(4)"); page.click("#teamGo"); page.wait_for_timeout(400)
+    page.click("#segNew"); page.fill("#teamName", "Tokat Aslanları"); page.click("#palette button:nth-child(4)")
+    print("2 create box:", txt(page, "#createPrice"), "|", txt(page, "#teamGo"), "| steps:", page.eval_on_selector_all("#provBody .steps small", "e => e.map(x => x.textContent)")[:1])
+    page.screenshot(path=str(OUT / "02_create_paid.png"))
+    page.click("#teamGo"); page.wait_for_url("**pay.test**")
+    print("2 create checkout:", page.url[:80]); complete(pid_from(page.url))
+    page.goto(PAGE); page.wait_for_selector("#map path.land"); page.wait_for_timeout(2500)
+    print("2 created toast:", txt(page, "#toast"), "| teams view:", txt(page, "#teamsBody h2"))
+    page.click("#tabProv"); page.wait_for_timeout(200)
     print("2 created dock:", txt(page, "#dockWho"), "|", txt(page, "#dockState"), "| clock:", txt(page, "#clockBtn"))
     click_path(page, "#map path.land", "code", "TR"); page.wait_for_timeout(900)
     print("3 country view:", txt(page, "#provBody h2"), "|", txt(page, "#provBody .c-sub"), "| rows:", page.eval_on_selector_all("#provBody ul.list li", "e => e.map(x => x.textContent)"))
