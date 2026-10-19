@@ -596,6 +596,22 @@ body.explored .mapcap { display: none; }
   </form>
 </dialog>
 
+<dialog id="boostDlg">
+  <form id="boostForm" novalidate>
+    <h2 data-i18n="boostTitle">Vote booster</h2>
+    <div class="buybox">
+      <div class="price" id="boostPrice">$1</div>
+      <ul id="boostPerks"></ul>
+    </div>
+    <small class="muted" data-i18n="buyNote">Payment happens on Lemon Squeezy's secure checkout page. Come back here after paying.</small>
+    <p class="err" id="boostErr" hidden></p>
+    <div class="row">
+      <button type="button" class="cta ghost" data-close data-i18n="cancel">Cancel</button>
+      <button type="submit" class="cta grow" id="boostGo" data-i18n="toCheckout">Go to payment</button>
+    </div>
+  </form>
+</dialog>
+
 <dialog id="editDlg">
   <form id="editForm" novalidate>
     <h2 data-i18n="editTitle">Edit team</h2>
@@ -715,7 +731,7 @@ const T = {
     shareProv: '{p} is held by {t} on Fethet. Come take it back:', shareProvFree: '{p} is still unclaimed on Fethet. Grab it:',
     shareTeam: 'Join {t} on Fethet and paint the world:', shareMe: 'I’m {n} on Fethet. Join my team:',
     pickHint: 'Tap a country on the map to open its provinces, or search above.',
-    step1: 'Join or start a team', step1s: 'Pick a color. Anyone can start one.', step1sPaid: 'Join any team for free, or start your own for {price}.', createLbl: 'Start team · {price}', createNote: 'You pay on Lemon Squeezy’s secure checkout. Your team is created as soon as the payment goes through, and you become its owner.', createPending: 'Your team is being set up…',
+    step1: 'Join or start a team', step1s: 'Pick a color. Anyone can start one.', boostCta: '⚡ Speed up · {price}', boostTitle: 'Vote booster', boostPerk1: 'For {h} hours you can vote every {m} minutes instead of once an hour.', boostPerk2: 'That’s up to {n} votes a day instead of 24.', boostPerk3: 'Buy again before it ends and the time adds up.', boostPerk4: 'Your daily rally still works on top.', boostOn: '⚡ {t}', boostToast: '⚡ Booster on: vote every {m} minutes for {h} hours.', fBoost: '{n} got a vote booster', boostActive: 'Booster on: {t} left', boostBuy: 'Get booster · {price}', boostDesc: 'Vote every {m} minutes for {h} hours.', step1sPaid: 'Join any team for free, or start your own for {price}.', createLbl: 'Start team · {price}', createNote: 'You pay on Lemon Squeezy’s secure checkout. Your team is created as soon as the payment goes through, and you become its owner.', createPending: 'Your team is being set up…',
     step2: 'Vote once every hour', step2s: 'Each province takes the color of the team with the most points in 7 days.',
     step3: 'Become a province chair', step3s: 'Claim a chair for {base} and earn XP every hour.',
     yourTeam: 'Your team', holds: '{c} provinces', hold1: '1 province', members: '{m} members', member1: '1 member',
@@ -793,6 +809,8 @@ const T = {
 <li>{takeover}</li>
 <li>The chair of the leading team is the province’s chair, shown on the map with ♛. If that chair is empty, the leading team’s top voter is the acting chair.</li>
 <li>Chairs earn <b>+{xp} XP every hour</b>. Leaving your team gives up your chairs in it.</li></ul>
+<h3>Vote booster</h3><ul>
+<li>For <b>{boost}</b> you can vote every <b>{bmin} minutes</b> instead of once an hour, for <b>{bh} hours</b>. Buying again adds more time.</li></ul>
 <h3>Buying a team</h3><ul>
 <li>Any team can be bought for <b>{price}</b>. The buyer becomes the owner (👑) and can rename it and change its color; the old owner stays as a member. Anyone can buy it again the same way.</li></ul>
 <h3>Levels</h3><p>+1 XP per vote, +{rally} XP per rally, +{xp} XP for every hour as a chair.</p>{levels}`,
@@ -860,7 +878,7 @@ const T = {
     shareProv: '{p} şu an Fethet’te {t} takımının. Gel geri al:', shareProvFree: '{p} Fethet’te hâlâ sahipsiz. Kap:',
     shareTeam: 'Fethet’te {t} takımına katıl, dünyayı boya:', shareMe: 'Fethet’te {n} benim. Takımıma katıl:',
     pickHint: 'İllerini açmak için haritada bir ülkeye dokun ya da yukarıdan ara.',
-    step1: 'Takıma katıl ya da kur', step1s: 'Rengini seç. Herkes takım kurabilir.', step1sPaid: 'Bir takıma ücretsiz katıl ya da {price} ile kendi takımını kur.', createLbl: 'Takımı kur · {price}', createNote: 'Ödeme Lemon Squeezy’nin güvenli sayfasında yapılır. Ödeme geçer geçmez takımın kurulur ve sahibi sen olursun.', createPending: 'Takımın kuruluyor…',
+    step1: 'Takıma katıl ya da kur', step1s: 'Rengini seç. Herkes takım kurabilir.', boostCta: '⚡ Hızlandır · {price}', boostTitle: 'Oy hızlandırıcı', boostPerk1: '{h} saat boyunca saatte bir yerine her {m} dakikada bir oy verebilirsin.', boostPerk2: 'Günde 24 yerine {n} oya kadar.', boostPerk3: 'Süre bitmeden tekrar alırsan süre üstüne eklenir.', boostPerk4: 'Günlük seferberliğin de ayrıca çalışmaya devam eder.', boostOn: '⚡ {t}', boostToast: '⚡ Hızlandırıcı açık: {h} saat boyunca {m} dakikada bir oy.', fBoost: '{n} oy hızlandırıcı aldı', boostActive: 'Hızlandırıcı açık: {t} kaldı', boostBuy: 'Hızlandırıcı al · {price}', boostDesc: '{h} saat boyunca {m} dakikada bir oy.', step1sPaid: 'Bir takıma ücretsiz katıl ya da {price} ile kendi takımını kur.', createLbl: 'Takımı kur · {price}', createNote: 'Ödeme Lemon Squeezy’nin güvenli sayfasında yapılır. Ödeme geçer geçmez takımın kurulur ve sahibi sen olursun.', createPending: 'Takımın kuruluyor…',
     step2: 'Saatte bir oy ver', step2s: 'Her il, 7 günde en çok puanı alan takımın rengine boyanır.',
     step3: 'İl başkanı ol', step3s: 'Koltuğu {base} karşılığında al, her saat XP kazan.',
     yourTeam: 'Takımın', holds: '{c} il', hold1: '1 il', members: '{m} üye', member1: '1 üye',
@@ -938,6 +956,8 @@ const T = {
 <li>{takeover}</li>
 <li>Öndeki takımın başkanı, ilin başkanı olarak haritada ♛ ile görünür. O koltuk boşsa öndeki takımda en çok oy veren vekil başkan olur.</li>
 <li>Başkanlar <b>her saat +{xp} XP</b> kazanır. Takımından ayrılırsan oradaki başkanlıklarını kaybedersin.</li></ul>
+<h3>Oy hızlandırıcı</h3><ul>
+<li><b>{boost}</b> karşılığında <b>{bh} saat</b> boyunca saatte bir yerine <b>{bmin} dakikada bir</b> oy verebilirsin. Tekrar alırsan süre üstüne eklenir.</li></ul>
 <h3>Takım satın alma</h3><ul>
 <li>Her takım <b>{price}</b> ödenerek satın alınabilir. Satın alan sahip olur (👑), adını ve rengini değiştirebilir; eski sahip üye olarak kalır. Başkası da aynı şekilde yeniden satın alabilir.</li></ul>
 <h3>Seviyeler</h3><p>Her oy +1 XP, her seferberlik +{rally} XP, başkanlıkta geçen her saat +{xp} XP.</p>{levels}`,
@@ -987,7 +1007,7 @@ function h(tag, attrs, ...kids) {
 const S = {
   lang: 'en', me: null, secret: null, offset: 0,
   prov: new Map(), teams: new Map(), feed: [], top: [], chairs: [], players: 0, votes24: 0, votesHour: 0, provTotal: 0,
-  teamsTotal: 0, seatsTotal: 0, pc: {}, price: 200, createPrice: 0, seatBase: 100, seatStep: 100, seatXp: 20, rallyPts: 10, checkout: false, contact: '',
+  teamsTotal: 0, seatsTotal: 0, pc: {}, price: 200, createPrice: 0, boostPrice: 100, boostHours: 24, boostMin: 10, seatBase: 100, seatStep: 100, seatXp: 20, rallyPts: 10, checkout: false, contact: '',
   sel: null, detail: null, country: null, countryAll: false, tab: 'prov', teamView: null, teamDetail: null, teamFilter: '',
   rankMode: 'teams', chairData: null, chairAt: 0, profileView: null, profileData: null, myProfile: null, showCode: false,
   opened: new Map(), mapReady: false, busy: false, rallyArm: null, loaded: false, pending: null
@@ -1903,6 +1923,9 @@ function feedLine(f) {
       h('span', { class: 'nm' }, h('span', { style: 'color:var(--signal)' }, '♛ '), t('fSeat', { n: f.n || '?', p: `${flag(f.c)} ${f.pn || ''}` }), ' ', h('small', null, money(f.a || 0))),
       h('span', { class: 'v' }, ago(f.at)));
   }
+  if (f.k === 'boost') {
+    return h('li', { class: 'click', onclick: () => openProfile(f.n) }, dot(teamColor(f.t)), h('span', { class: 'nm' }, h('span', { style: 'color:var(--signal)' }, '⚡ '), t('fBoost', { n: f.n || '?' }), ' ', h('small', null, teamName(f.t))), h('span', { class: 'v' }, ago(f.at)));
+  }
   const line = f.k === 'sold' ? t('fSold', { n: f.n || '?', t: teamName(f.t) }) : t('fCreated', { n: f.n || '?', t: teamName(f.t) });
   return h('li', { class: 'click', onclick: () => openTeam(f.t) }, dot(teamColor(f.t)), h('span', { class: 'nm' }, f.k === 'sold' ? '\u{1F451} ' : '', line), h('span', { class: 'v' }, ago(f.at)));
 }
@@ -2000,6 +2023,10 @@ function renderMe() {
     parts.splice(3, 0, h('div', { class: 'card' }, h('span', { style: 'font-size:20px' }, '⚡'),
       h('div', null, h('b', null, ready ? t('rallyReady', { n: S.rallyPts }) : t('rallyIn', { t: untilText(S.me.rally_at) })),
         h('small', null, t('rallyHow')))));
+    parts.splice(4, 0, h('div', { class: 'card' }, h('span', { style: 'font-size:20px' }, '⏱'),
+      h('div', null, h('b', null, boostOn() ? t('boostActive', { t: untilText(S.me.boost_until) }) : t('boostTitle')),
+        h('small', null, t('boostDesc', { m: S.boostMin, h: S.boostHours }))),
+      boostOn() ? null : h('button', { type: 'button', class: 'cta small', disabled: !S.checkout, onclick: openBoost }, t('boostBuy', { price: money(S.boostPrice) }))));
   }
   const code = S.secret || '';
   const grouped = code.match(/.{1,8}/g) ? code.match(/.{1,8}/g).join(' ') : code;
@@ -2055,7 +2082,7 @@ function renderDock() {
   }
   const tm = team(S.me.team.id) || S.me.team;
   dock.style.setProperty('--team', tm.color);
-  who.replaceChildren(lvlBadge(S.me.xp || 0, 'sm'), h('b', null, S.me.nickname), (S.me.owns || []).includes(S.me.team.id) ? '\u{1F451}' : null, h('span', { class: 'tn' }, '· ' + tm.name));
+  who.replaceChildren(lvlBadge(S.me.xp || 0, 'sm'), h('b', null, S.me.nickname), (S.me.owns || []).includes(S.me.team.id) ? '\u{1F451}' : '', h('span', { class: 'tn' }, '· ' + tm.name));
   if (canVote()) {
     st.className = 'dock-state ready';
     if (S.sel) {
@@ -2070,18 +2097,26 @@ function renderDock() {
       cta.disabled = true;
     }
   } else {
-    st.replaceChildren(t('nextPre'), h('span', { class: 'num' }, fmtLeft(new Date(S.me.next_vote_at).getTime() - now())), t('nextPost'));
-    cta.textContent = t('voted');
-    cta.disabled = true;
+    const boosted = boostOn();
+    st.replaceChildren(...[t('nextPre'), h('span', { class: 'num' }, fmtLeft(new Date(S.me.next_vote_at).getTime() - now())), t('nextPost'),
+      boosted ? h('span', { style: 'color:var(--signal)' }, ' · ', t('boostOn', { t: untilText(S.me.boost_until) })) : null].filter((x) => x != null && x !== ''));
+    if (!boosted && S.checkout) {
+      cta.textContent = t('boostCta', { price: money(S.boostPrice) });
+      cta.onclick = () => openBoost();
+    } else {
+      cta.textContent = t('voted');
+      cta.disabled = true;
+    }
   }
 }
+function boostOn() { return !!(S.me && S.me.boost_until && new Date(S.me.boost_until).getTime() > now()); }
 function renderClock() {
   const el = $('clockBtn');
   const ready = S.me && S.me.team && canVote();
   el.classList.toggle('ready', !!ready);
   if (ready) { el.textContent = t('clockReady'); return; }
   const n = now();
-  const next = Math.ceil((n + 1) / 3600000) * 3600000;
+  const next = S.me && S.me.team && S.me.next_vote_at ? new Date(S.me.next_vote_at).getTime() : Math.ceil((n + 1) / 3600000) * 3600000;
   el.innerHTML = '<svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.2V8l2.6 1.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
   el.append(fmtLeft(next - n));
 }
@@ -2173,7 +2208,7 @@ function renderTicker() {
     if (items.length >= 14) break;
     if (f.k === 'seat') continue;
     if (f.k === 'v' && f.a > 1) items.push(['rally', f]);
-    else if (f.k === 'sold') items.push(['sold', f]);
+    else if (f.k === 'sold' || f.k === 'boost') items.push([f.k, f]);
   }
   for (const f of S.feed) { if (items.length >= 14) break; if (f.k === 'v' && !(f.a > 1)) items.push(['vote', f]); }
   const sig = S.lang + items.map(([k, f]) => k + f.n + f.at).join('|');
@@ -2183,6 +2218,7 @@ function renderTicker() {
   const mk = ([k, f]) => {
     if (k === 'seat') return h('span', null, h('span', { class: 'gold' }, '♛'), h('b', null, f.n), flag(f.c), f.pn || '', h('span', { class: 'gold' }, money(f.a || 0)));
     if (k === 'rally') return h('span', null, h('span', { class: 'gold' }, '⚡'), h('b', null, f.n), '→', flag(f.c), f.pn || '', h('span', { class: 'gold' }, '+' + f.a));
+    if (k === 'boost') return h('span', null, h('span', { class: 'gold' }, '⚡'), h('b', null, f.n), t('fBoost', { n: '' }).trim());
     if (k === 'sold') return h('span', null, '👑', h('b', null, f.n), teamName(f.t));
     return h('span', null, dot(teamColor(f.t), 8), h('b', null, f.n), '→', flag(f.c), f.pn || '');
   };
@@ -2416,6 +2452,29 @@ $('seatForm').addEventListener('submit', async (ev) => {
     window.location.href = r.url;
   } catch (e) { setErr('seatErr', errText(e)); btn.disabled = false; }
 });
+function openBoost() {
+  if (!S.me) return openJoin();
+  if (!S.me.team) return openTeamDlg('join');
+  setErr('boostErr');
+  $('boostGo').disabled = false;
+  $('boostPrice').textContent = money(S.boostPrice);
+  $('boostPerks').replaceChildren(
+    h('li', null, t('boostPerk1', { h: S.boostHours, m: S.boostMin })),
+    h('li', null, t('boostPerk2', { n: Math.floor((24 * 60) / S.boostMin) })),
+    h('li', null, t('boostPerk3')),
+    h('li', null, t('boostPerk4')));
+  showDlg($('boostDlg'));
+}
+$('boostForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const btn = $('boostGo');
+  btn.disabled = true;
+  try {
+    const r = await rpc('pw_boost_start', { p_secret: S.secret });
+    store.set('ptw2_purchase', r.id);
+    window.location.href = r.url;
+  } catch (e) { setErr('boostErr', errText(e)); btn.disabled = false; }
+});
 async function checkPurchase() {
   const id = store.get('ptw2_purchase');
   if (!id || !S.secret) return;
@@ -2431,6 +2490,10 @@ async function checkPurchase() {
         loadMyProfile();
         await refresh();
         if (r.status === 'problem') { toast(t('problemToast'), true); return; }
+        if (r.kind === 'boost') {
+          toast(t('boostToast', { m: S.boostMin, h: S.boostHours }));
+          return;
+        }
         if (r.kind === 'create') {
           toast(t('createdToast', { t: r.team }));
           if (r.team_id) openTeam(r.team_id);
@@ -2482,6 +2545,7 @@ function openDoc(name) {
     const take = (S.seatStep ? D.takeover : D.takeoverFlat).replace('{step}', money(S.seatStep)).replace('{base}', money(S.seatBase));
     html = html.replace('{takeover}', take).replace('{levels}', levelTable());
   }
+  html = html.replace('{boost}', money(S.boostPrice)).replace('{bmin}', S.boostMin).replace('{bh}', S.boostHours);
   html = html.replace('{create}', S.createPrice ? (S.lang === 'tr' ? ` Takıma katılmak ücretsiz, kendi takımını kurmak <b>${money(S.createPrice)}</b>.` : ` Joining is free; starting your own team costs <b>${money(S.createPrice)}</b>.`) : '');
   html = html.replace(/\{rally\}/g, S.rallyPts).replace(/\{base\}/g, money(S.seatBase)).replace(/\{xp\}/g, S.seatXp).replace(/\{price\}/g, money(S.price));
   $('docBody').innerHTML = html;
@@ -2654,6 +2718,7 @@ async function boot() {
     S.pc = m.pc || {};
     if (m.price_cents) S.price = m.price_cents;
     if (m.create_price != null) S.createPrice = m.create_price;
+    if (m.boost_price) { S.boostPrice = m.boost_price; S.boostHours = m.boost_hours || 24; S.boostMin = m.boost_minutes || 10; }
     if (m.seat_base) S.seatBase = m.seat_base;
     if (m.seat_step != null) S.seatStep = m.seat_step;
     S.checkout = !!m.checkout;

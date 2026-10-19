@@ -596,6 +596,22 @@ body.explored .mapcap { display: none; }
   </form>
 </dialog>
 
+<dialog id="boostDlg">
+  <form id="boostForm" novalidate>
+    <h2 data-i18n="boostTitle">Vote booster</h2>
+    <div class="buybox">
+      <div class="price" id="boostPrice">$1</div>
+      <ul id="boostPerks"></ul>
+    </div>
+    <small class="muted" data-i18n="buyNote">Payment happens on Lemon Squeezy's secure checkout page. Come back here after paying.</small>
+    <p class="err" id="boostErr" hidden></p>
+    <div class="row">
+      <button type="button" class="cta ghost" data-close data-i18n="cancel">Cancel</button>
+      <button type="submit" class="cta grow" id="boostGo" data-i18n="toCheckout">Go to payment</button>
+    </div>
+  </form>
+</dialog>
+
 <dialog id="editDlg">
   <form id="editForm" novalidate>
     <h2 data-i18n="editTitle">Edit team</h2>

@@ -47,7 +47,7 @@ players, teams, votes, purchases, events, seats = {}, {}, [], {}, [], {}
 BASE, STEP, SEATXP, RALLY, CREATE = 100, 100, 20, 10, 200
 
 def mk_player(secret, nick):
-    players[secret] = {"id": str(uuid.uuid4()), "nickname": nick, "team": None, "joined": None, "last": None, "rally": None, "bank": 0, "created": now() - dt.timedelta(days=3)}
+    players[secret] = {"id": str(uuid.uuid4()), "nickname": nick, "team": None, "joined": None, "last": None, "rally": None, "bank": 0, "boost": None, "created": now() - dt.timedelta(days=3)}
     return players[secret]
 def mk_team(name, color, owner):
     tid = str(uuid.uuid4())
@@ -71,13 +71,16 @@ def by_id(pid): return next(p for p in players.values() if p["id"] == pid)
 def hours_xp(since): return math.floor((now() - since).total_seconds() / 3600) * SEATXP
 def xp(p):
     return sum(v["w"] for v in votes if v["pid"] == p["id"]) + p["bank"] + sum(hours_xp(s["since"]) for s in seats.values() if s["holder"] == p["id"])
+def boosted(p): return bool(p.get("boost") and p["boost"] > now())
 def me_json(p):
     hr = now().replace(minute=0, second=0, microsecond=0)
     tm = teams.get(p["team"])
     return {"nickname": p["nickname"],
             "team": {"id": tm["id"], "name": tm["name"], "color": tm["color"], "owner": tm["owner"] == p["id"]} if tm else None,
             "owns": [t["id"] for t in teams.values() if t["owner"] == p["id"]],
-            "can_vote": p["last"] is None or p["last"] < hr, "next_vote_at": iso_(hr + dt.timedelta(hours=1)),
+            "can_vote": (p["last"] is None or p["last"] <= now() - dt.timedelta(minutes=10)) if boosted(p) else (p["last"] is None or p["last"] < hr),
+            "next_vote_at": iso_(p["last"] + dt.timedelta(minutes=10)) if boosted(p) and p["last"] else iso_(hr + dt.timedelta(hours=1)),
+            "boost_until": iso_(p["boost"]) if boosted(p) else None,
             "can_rally": p["rally"] is None or p["rally"] <= now() - dt.timedelta(hours=24),
             "rally_at": iso_(p["rally"] + dt.timedelta(hours=24)) if p["rally"] else None,
             "switch_at": iso_(p["joined"] + dt.timedelta(hours=24)) if p["joined"] else None,
@@ -146,7 +149,7 @@ def profile(nick):
             "owns": [{"id": t["id"], "name": t["name"], "color": t["color"]} for t in teams.values() if t["owner"] == p["id"]],
             "fav": [{"i": i, "pn": PROV[i][1], "c": PROV[i][0], "p": n} for i, n in sorted(fav.items(), key=lambda x: -x[1])[:5]]}
 def rpc(name, b):
-    if name == "pw_meta": return {"pc": {"TR": 3, "JP": 2, "DE": 1}, "price_cents": 200, "create_price": CREATE, "seat_base": BASE, "seat_step": STEP, "checkout": True}
+    if name == "pw_meta": return {"pc": {"TR": 3, "JP": 2, "DE": 1}, "price_cents": 200, "create_price": CREATE, "boost_price": 100, "boost_hours": 24, "boost_minutes": 10, "seat_base": BASE, "seat_step": STEP, "checkout": True}
     if name == "pw_state": return state()
     if name == "pw_me":
         p = players.get(b["p_secret"]); return me_json(p) if p else None
@@ -157,6 +160,11 @@ def rpc(name, b):
     if name == "pw_teams":
         q = (b.get("p_q") or "").lower()
         return [{"id": t["id"], "name": t["name"], "color": t["color"], "members": team_row(t)["members"]} for t in teams.values() if q in t["name"].lower()]
+    if name == "pw_boost_start":
+        p = need(b["p_secret"])
+        if not p["team"]: raise E("no_team")
+        pid = str(uuid.uuid4()); purchases[pid] = {"player": p, "team": teams[p["team"]], "status": "pending", "kind": "boost"}
+        return {"id": pid, "price_cents": 100, "url": f"https://pay.test/checkout/buy/x?quantity=1&checkout[custom][purchase_id]={pid}"}
     if name == "pw_create_start":
         p = need(b["p_secret"])
         if any(t["name"].lower() == b["p_name"].lower() for t in teams.values()): raise E("team_name_taken")
@@ -195,7 +203,7 @@ def rpc(name, b):
         if b["p_target"] not in PROV: raise E("bad_target")
         if name == "pw_vote":
             hr = now().replace(minute=0, second=0, microsecond=0)
-            if p["last"] and p["last"] >= hr: raise E("cooldown")
+            if p["last"] and ((p["last"] > now() - dt.timedelta(minutes=10)) if boosted(p) else p["last"] >= hr): raise E("cooldown")
             add_vote(p, b["p_target"], 0); p["last"] = now()
         else:
             if p["rally"] and p["rally"] > now() - dt.timedelta(hours=24): raise E("rally_cooldown")
@@ -251,6 +259,10 @@ def rpc(name, b):
 
 def complete(pid):  # what the webhook + SQL do
     pu = purchases[pid]; pu["status"] = "paid"; p = pu["player"]
+    if pu["kind"] == "boost":
+        p["boost"] = max(p["boost"] or now(), now()) + dt.timedelta(hours=24)
+        events.append({"k": "boost", "n": p["nickname"], "t": p["team"], "i": None, "a": 100, "at": now()})
+        return
     if pu["kind"] == "create":
         tid = str(uuid.uuid4())
         teams[tid] = {"id": tid, "name": pu["name"], "color": pu["color"], "owner": p["id"], "founder": p["id"], "sales": 0}
@@ -341,7 +353,14 @@ with sync_playwright() as pw:
           "| actions:", page.eval_on_selector_all("#provBody .actions button", "e => e.map(x => x.textContent)"), "| cta:", txt(page, "#cta"))
     page.screenshot(path=str(OUT / "04_tokat.png"), full_page=True)
     page.click("#cta"); page.wait_for_timeout(600)
-    print("4 vote toast:", txt(page, "#toast"), "| dock:", txt(page, "#dockState"), "| clock:", txt(page, "#clockBtn"))
+    print("4 vote toast:", txt(page, "#toast"), "| dock:", txt(page, "#dockState"), "| clock:", txt(page, "#clockBtn"), "| cta:", txt(page, "#cta"))
+    page.click("#cta"); page.wait_for_selector("#boostDlg[open]")
+    print("4b boost dlg:", txt(page, "#boostPrice"), page.eval_on_selector_all("#boostPerks li", "e => e.map(x => x.textContent)"))
+    page.screenshot(path=str(OUT / "04b_boost.png"))
+    page.click("#boostGo"); page.wait_for_url("**pay.test**"); complete(pid_from(page.url))
+    page.goto(PAGE + "#p=TR-60"); page.wait_for_selector("#map path.land"); page.wait_for_timeout(2500)
+    print("4c boosted:", txt(page, "#toast"), "| dock:", txt(page, "#dockState"), "| cta:", txt(page, "#cta"), "| clock:", txt(page, "#clockBtn"))
+    page.screenshot(path=str(OUT / "04c_boosted.png"))
     page.click("#provBody .actions button >> nth=0"); page.wait_for_timeout(150)
     print("4 rally armed:", page.eval_on_selector_all("#provBody .actions button", "e => e.map(x => x.textContent)"))
     page.click("#provBody .actions button >> nth=0"); page.wait_for_timeout(700)
