@@ -71,7 +71,7 @@ const T = {
     shareProv: '{p} is held by {t} on Fethet. Come take it back:', shareProvFree: '{p} is still unclaimed on Fethet. Grab it:',
     shareTeam: 'Join {t} on Fethet and paint the world:', shareMe: 'I’m {n} on Fethet. Join my team:',
     pickHint: 'Tap a country on the map to open its provinces, or search above.',
-    step1: 'Join or start a team', step1s: 'Pick a color. Anyone can start one.', boostCta: '⚡ Speed up · {price}', boostTitle: 'Vote booster', boostPerk1: 'For {h} hours you can vote every {m} minutes instead of once an hour.', boostPerk2: 'That’s up to {n} votes a day instead of 24.', boostPerk3: 'Buy again before it ends and the time adds up.', boostPerk4: 'Your daily rally still works on top.', boostOn: '⚡ {t}', boostToast: '⚡ Booster on: vote every {m} minutes for {h} hours.', fBoost: '{n} got a vote booster', boostActive: 'Booster on: {t} left', boostBuy: 'Get booster · {price}', boostDesc: 'Vote every {m} minutes for {h} hours.', step1sPaid: 'Join any team for free, or start your own for {price}.', createLbl: 'Start team · {price}', createNote: 'You pay on Lemon Squeezy’s secure checkout. Your team is created as soon as the payment goes through, and you become its owner.', createPending: 'Your team is being set up…',
+    step1: 'Join or start a team', step1s: 'Pick a color. Anyone can start one.', freeLbl: 'Free', buyNoteFree: 'Free for now — no payment needed.', toCheckoutFree: 'Get it free', seatRuleFree: 'Free for now: claim the chair any time; a teammate can take it from you the same way. Chairs earn {xp} XP every hour.', seatRuleFlatFree: 'Free for now: claim the chair any time; a teammate can take it from you the same way. Chairs earn {xp} XP every hour.', seatPerk3Free: 'A teammate can take it over the same way.', seatPerk3flatFree: 'A teammate can take it over the same way.', boostCta: '⚡ Speed up · {price}', boostTitle: 'Vote booster', boostPerk1: 'For {h} hours you can vote every {m} minutes instead of once an hour.', boostPerk2: 'That’s up to {n} votes a day instead of 24.', boostPerk3: 'Buy again before it ends and the time adds up.', boostPerk4: 'Your daily rally still works on top.', boostOn: '⚡ {t}', boostToast: '⚡ Booster on: vote every {m} minutes for {h} hours.', fBoost: '{n} got a vote booster', boostActive: 'Booster on: {t} left', boostBuy: 'Get booster · {price}', boostDesc: 'Vote every {m} minutes for {h} hours.', step1sPaid: 'Join any team for free, or start your own for {price}.', createLbl: 'Start team · {price}', createNote: 'You pay on Lemon Squeezy’s secure checkout. Your team is created as soon as the payment goes through, and you become its owner.', createPending: 'Your team is being set up…',
     step2: 'Vote once every hour', step2s: 'Each province takes the color of the team with the most points in 7 days.',
     step3: 'Become a province chair', step3s: 'Claim a chair for {base} and earn XP every hour.',
     yourTeam: 'Your team', holds: '{c} provinces', hold1: '1 province', members: '{m} members', member1: '1 member',
@@ -218,7 +218,7 @@ const T = {
     shareProv: '{p} şu an Fethet’te {t} takımının. Gel geri al:', shareProvFree: '{p} Fethet’te hâlâ sahipsiz. Kap:',
     shareTeam: 'Fethet’te {t} takımına katıl, dünyayı boya:', shareMe: 'Fethet’te {n} benim. Takımıma katıl:',
     pickHint: 'İllerini açmak için haritada bir ülkeye dokun ya da yukarıdan ara.',
-    step1: 'Takıma katıl ya da kur', step1s: 'Rengini seç. Herkes takım kurabilir.', boostCta: '⚡ Hızlandır · {price}', boostTitle: 'Oy hızlandırıcı', boostPerk1: '{h} saat boyunca saatte bir yerine her {m} dakikada bir oy verebilirsin.', boostPerk2: 'Günde 24 yerine {n} oya kadar.', boostPerk3: 'Süre bitmeden tekrar alırsan süre üstüne eklenir.', boostPerk4: 'Günlük seferberliğin de ayrıca çalışmaya devam eder.', boostOn: '⚡ {t}', boostToast: '⚡ Hızlandırıcı açık: {h} saat boyunca {m} dakikada bir oy.', fBoost: '{n} oy hızlandırıcı aldı', boostActive: 'Hızlandırıcı açık: {t} kaldı', boostBuy: 'Hızlandırıcı al · {price}', boostDesc: '{h} saat boyunca {m} dakikada bir oy.', step1sPaid: 'Bir takıma ücretsiz katıl ya da {price} ile kendi takımını kur.', createLbl: 'Takımı kur · {price}', createNote: 'Ödeme Lemon Squeezy’nin güvenli sayfasında yapılır. Ödeme geçer geçmez takımın kurulur ve sahibi sen olursun.', createPending: 'Takımın kuruluyor…',
+    step1: 'Takıma katıl ya da kur', step1s: 'Rengini seç. Herkes takım kurabilir.', freeLbl: 'Ücretsiz', buyNoteFree: 'Şimdilik ücretsiz, ödeme yok.', toCheckoutFree: 'Ücretsiz al', seatRuleFree: 'Şimdilik ücretsiz: koltuğu istediğin an alabilirsin, takım arkadaşın da senden aynı şekilde alabilir. Başkanlar her saat {xp} XP kazanır.', seatRuleFlatFree: 'Şimdilik ücretsiz: koltuğu istediğin an alabilirsin, takım arkadaşın da senden aynı şekilde alabilir. Başkanlar her saat {xp} XP kazanır.', seatPerk3Free: 'Takım arkadaşın da aynı şekilde devralabilir.', seatPerk3flatFree: 'Takım arkadaşın da aynı şekilde devralabilir.', boostCta: '⚡ Hızlandır · {price}', boostTitle: 'Oy hızlandırıcı', boostPerk1: '{h} saat boyunca saatte bir yerine her {m} dakikada bir oy verebilirsin.', boostPerk2: 'Günde 24 yerine {n} oya kadar.', boostPerk3: 'Süre bitmeden tekrar alırsan süre üstüne eklenir.', boostPerk4: 'Günlük seferberliğin de ayrıca çalışmaya devam eder.', boostOn: '⚡ {t}', boostToast: '⚡ Hızlandırıcı açık: {h} saat boyunca {m} dakikada bir oy.', fBoost: '{n} oy hızlandırıcı aldı', boostActive: 'Hızlandırıcı açık: {t} kaldı', boostBuy: 'Hızlandırıcı al · {price}', boostDesc: '{h} saat boyunca {m} dakikada bir oy.', step1sPaid: 'Bir takıma ücretsiz katıl ya da {price} ile kendi takımını kur.', createLbl: 'Takımı kur · {price}', createNote: 'Ödeme Lemon Squeezy’nin güvenli sayfasında yapılır. Ödeme geçer geçmez takımın kurulur ve sahibi sen olursun.', createPending: 'Takımın kuruluyor…',
     step2: 'Saatte bir oy ver', step2s: 'Her il, 7 günde en çok puanı alan takımın rengine boyanır.',
     step3: 'İl başkanı ol', step3s: 'Koltuğu {base} karşılığında al, her saat XP kazan.',
     yourTeam: 'Takımın', holds: '{c} il', hold1: '1 il', members: '{m} üye', member1: '1 üye',
@@ -347,7 +347,7 @@ function h(tag, attrs, ...kids) {
 const S = {
   lang: 'en', me: null, secret: null, offset: 0,
   prov: new Map(), teams: new Map(), feed: [], top: [], chairs: [], players: 0, votes24: 0, votesHour: 0, provTotal: 0,
-  teamsTotal: 0, seatsTotal: 0, pc: {}, price: 200, createPrice: 0, boostPrice: 100, boostHours: 24, boostMin: 10, seatBase: 100, seatStep: 100, seatXp: 20, rallyPts: 10, checkout: false, contact: '',
+  teamsTotal: 0, seatsTotal: 0, pc: {}, price: 200, free: false, createPrice: 0, boostPrice: 100, boostHours: 24, boostMin: 10, seatBase: 100, seatStep: 100, seatXp: 20, rallyPts: 10, checkout: false, contact: '',
   sel: null, detail: null, country: null, countryAll: false, tab: 'prov', teamView: null, teamDetail: null, teamFilter: '',
   rankMode: 'teams', chairData: null, chairAt: 0, profileView: null, profileData: null, myProfile: null, showCode: false,
   opened: new Map(), mapReady: false, busy: false, rallyArm: null, loaded: false, pending: null
@@ -360,6 +360,7 @@ function t(key, vars) {
     else if (key === 'people' && +vars.v === 1) key = 'person1';
     else if (key === 'seatsN' && +vars.c === 1) key = 'seat1';
   }
+  if (S.free && (key === 'buyNote' || key === 'toCheckout' || key === 'seatRule' || key === 'seatRuleFlat' || key === 'seatPerk3' || key === 'seatPerk3flat')) key += 'Free';
   let s = (T[S.lang] && T[S.lang][key]) ?? T.en[key] ?? key;
   if (vars && typeof s === 'string') s = s.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
   return s;
@@ -386,6 +387,7 @@ function flag(code) {
 const fl = (code) => h('span', { class: 'flag', 'aria-hidden': 'true' }, flag(code));
 const dot = (color, size) => h('span', { class: 'dot', style: `background:${color}` + (size ? `;width:${size}px;height:${size}px` : '') });
 function money(cents) {
+  if (S.free) return t('freeLbl');
   try {
     return new Intl.NumberFormat(S.lang, { style: 'currency', currency: 'USD', minimumFractionDigits: cents % 100 ? 2 : 0 }).format(cents / 100);
   } catch (_) { return '$' + (cents / 100); }
@@ -2058,6 +2060,7 @@ async function boot() {
     S.pc = m.pc || {};
     if (m.price_cents) S.price = m.price_cents;
     if (m.create_price != null) S.createPrice = m.create_price;
+    if (!!m.free !== S.free) { S.free = !!m.free; applyLang(); }
     if (m.boost_price) { S.boostPrice = m.boost_price; S.boostHours = m.boost_hours || 24; S.boostMin = m.boost_minutes || 10; }
     if (m.seat_base) S.seatBase = m.seat_base;
     if (m.seat_step != null) S.seatStep = m.seat_step;
